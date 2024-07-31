@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <SurfaceView
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <FrameLayout
+        android:visibility="invisible"
+        android:id="@+id/mask_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_mask"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tv_network_speed"
+        android:translationZ="1dp"
+        tools:text="123k/s"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/video_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_mask"
+        android:drawablePadding="6dp"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:textColor="@color/white"
+        android:visibility="invisible" />
+
+</merge>

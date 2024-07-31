@@ -1,0 +1,62 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Movies" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!--<item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/primary</item>-->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
+
+        <item name="preferenceTheme">@style/MyPreferenceTheme</item>
+
+        <item name="android:spinnerDropDownItemStyle">@style/MySpinnerItemStyle</item>
+        <item name="dialogCornerRadius">22dp</item>
+    </style>
+    <style name="Theme.Movies" parent="Base.Theme.Movies" />
+
+    <style name="MyPreferenceTheme" parent="PreferenceThemeOverlay">
+        <item name="preferenceStyle">@style/MyPreferenceStyle</item>
+        <item name="switchPreferenceCompatStyle">@style/MySwitchPreferenceStyle</item>
+        <item name="dropdownPreferenceStyle">@style/MyDropDownPreferenceStyle</item>
+        <item name="seekBarPreferenceStyle">@style/Preference.SeekBarPreference.Material</item>
+        <item name="preferenceCategoryStyle">@style/MyCategoryStyle</item>
+    </style>
+
+    <style name="MyPreferenceStyle" parent="Preference.Material">
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="MySwitchPreferenceStyle" parent="Preference.SwitchPreferenceCompat.Material">
+        <item name="widgetLayout" tools:ignore="PrivateResource">@layout/preference_widget_switch</item>
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="MyCategoryStyle" parent="Preference.Category.Material">
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="PopupWindowSlideAnim" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/slide_left_in</item>
+        <item name="android:windowExitAnimation">@anim/slide_right_out</item>
+    </style>
+
+    <style name="MySpinnerItemStyle" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textAppearance">@style/TextAppearance.Material3.TitleMedium</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="MyDropDownPreferenceStyle" parent="Preference.DropDown.Material">
+        <item name="widgetLayout" tools:ignore="PrivateResource">@layout/preference_dropdown_material</item>
+    </style>
+
+    <style name="DialogStyle" parent="ThemeOverlay.AppCompat.Dialog">
+        <item name="dialogCornerRadius">22dp</item>
+        <item name="android:dialogCornerRadius" tools:targetApi="p">22dp</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+    </style>
+</resources>

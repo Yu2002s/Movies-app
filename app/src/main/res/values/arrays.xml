@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="slider_values">
+        <item>这是测试内容</item>
+        <item>这是测试内容</item>
+        <item>这是测试内容</item>
+    </string-array>
+    <string-array name="long_press_speed">
+        <item>3倍速</item>
+        <item>2倍速</item>
+        <item>1.5倍速</item>
+    </string-array>
+    <string-array name="long_press_speed_values">
+        <item>3.0</item>
+        <item>2.0</item>
+        <item>1.5</item>
+    </string-array>
+</resources>

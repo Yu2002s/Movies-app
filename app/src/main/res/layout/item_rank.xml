@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="250dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/rank_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        tools:text="周排行" />
+
+    <com.dongyu.movies.view.pager.FitScrollRecyclerView
+        android:id="@+id/rank_list_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+</LinearLayout>

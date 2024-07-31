@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <RadioGroup
+                    android:paddingVertical="10dp"
+                    android:paddingHorizontal="5dp"
+                    android:orientation="vertical"
+                    android:id="@+id/movie_radio_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                </RadioGroup>
+
+            </ScrollView>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="1dp"
+                android:layout_height="match_parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:id="@+id/result_recyclerview"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:indeterminate="true"
+            android:layout_gravity="top"
+            android:id="@+id/top_progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:indeterminate="true"
+            android:layout_gravity="bottom"
+            android:id="@+id/bottom_progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </FrameLayout>
+
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

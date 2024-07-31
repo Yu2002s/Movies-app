@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="用户信息">
+
+        <Preference
+            app:icon="@drawable/baseline_person_24"
+            app:key="userinfo" />
+
+        <Preference
+            app:icon="@drawable/baseline_close_24"
+            app:key="logout"
+            app:title="退出登录" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="通用">
+
+        <Preference
+            app:icon="@drawable/baseline_route_24"
+            app:key="route_id"
+            app:summary="主页显示内容线路"
+            app:title="主页线路" />
+
+        <Preference
+            app:fragment="com.dongyu.movies.fragment.video.PlayerSettingFragment"
+            app:icon="@drawable/baseline_play_circle_filled_24"
+            app:key="video_setting"
+            app:summary="修改播放器一些默认设置"
+            app:title="播放设置" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="关于">
+
+        <Preference
+            app:icon="@drawable/baseline_gavel_24"
+            app:key="statement"
+            app:title="免责声明" />
+
+        <Preference
+            app:summary="喜欢App的话就把他分享给别人吧"
+            app:icon="@drawable/baseline_share_24"
+            app:key="share_app"
+            app:title="分享App" />
+
+        <Preference
+            app:icon="@drawable/baseline_message_24"
+            app:key="contact"
+            app:title="联系我" />
+
+        <Preference
+            app:summary="加入群聊反馈bug或者建议"
+            app:icon="@drawable/baseline_group_24"
+            app:key="qq_group"
+            app:title="QQ交流反馈群" />
+
+        <Preference
+            app:icon="@drawable/baseline_group_24"
+            app:key="group"
+            app:title="Telegram群组" />
+
+        <Preference
+            app:summary="你的捐赠将是我开发最大的动力"
+            app:icon="@drawable/baseline_favorite_24"
+            app:key="donation"
+            app:title="捐赠" />
+
+        <Preference
+            app:icon="@drawable/baseline_link_24"
+            app:key="home_page"
+            app:title="App主页" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="一些问题">
+        <Preference
+            app:summary="建议切换线路，如无法解决，点击[搜索更多]后选择其他线路下的视频播放"
+            app:title="无法播放" />
+        <Preference
+            app:summary="切换线路或重新打开视频页面"
+            app:title="播放卡顿" />
+
+        <Preference
+            app:summary="视频来源于互联网收集而来，本非App内嵌广告。切勿相信任何广告，建议使用无广告先例"
+            app:title="视频内含广告" />
+
+        <Preference
+            app:summary="软件内的视频来源于互联网收集而来，本App和服务器不存储任何相关信息。如侵犯贵公司版权，请联系我进行删除！"
+            app:title="再次申明" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

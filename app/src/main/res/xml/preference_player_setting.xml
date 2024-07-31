@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:iconSpaceReserved="false"
+        app:key="auto_next"
+        app:summary="视频观看完成时自动播放下一集"
+        app:switchTextOff="关闭"
+        app:switchTextOn="开启"
+        app:title="自动播放下一集" />
+
+    <DropDownPreference
+        app:defaultValue="3.0"
+        app:entries="@array/long_press_speed"
+        app:entryValues="@array/long_press_speed_values"
+        app:iconSpaceReserved="false"
+        app:key="long_press_speed"
+        app:selectable="true"
+        app:summary="长按屏幕时速度倍数"
+        app:title="长按倍速"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreferenceCompat
+        app:iconSpaceReserved="false"
+        app:key="auto_fullscreen"
+        app:summary="视频加载完成时是否全屏"
+        app:switchTextOff="关闭"
+        app:switchTextOn="开启"
+        app:title="自动全屏" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:iconSpaceReserved="false"
+        app:key="auto_switch_route"
+        app:summary="解析视频失败时自动切换线路"
+        app:switchTextOff="关闭"
+        app:switchTextOn="开启"
+        app:title="自动切换解析" />
+
+    <SwitchPreferenceCompat
+        app:allowDividerAbove="true"
+        app:iconSpaceReserved="false"
+        app:key="skip_start"
+        app:title="跳过片头" />
+
+    <SeekBarPreference
+        android:max="300000"
+        app:defaultValue="0"
+        app:dependency="skip_start"
+        app:iconSpaceReserved="false"
+        app:key="skip_start_time"
+        app:seekBarIncrement="1000"
+        app:title="片头跳过时机"
+        app:updatesContinuously="true" />
+
+    <SwitchPreferenceCompat
+        app:allowDividerAbove="true"
+        app:iconSpaceReserved="false"
+        app:key="skip_end"
+        app:title="跳过片尾" />
+
+    <SeekBarPreference
+        app:defaultValue="0"
+        android:max="300000"
+        app:dependency="skip_end"
+        app:iconSpaceReserved="false"
+        app:key="skip_end_time"
+        app:seekBarIncrement="1000"
+        app:title="片尾跳过时机"
+        app:updatesContinuously="true" />
+
+</PreferenceScreen>

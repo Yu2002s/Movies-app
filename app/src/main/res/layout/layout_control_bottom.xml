@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:animateLayoutChanges="true"
+    android:background="@drawable/bg_bottom">
+
+    <ImageButton
+        android:id="@+id/btn_play"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@null"
+        android:src="@drawable/baseline_play_arrow_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
+        android:id="@+id/play_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:background="@null"
+        android:src="@drawable/baseline_skip_next_24"
+        app:layout_constraintBottom_toBottomOf="@id/btn_play"
+        app:layout_constraintStart_toEndOf="@id/btn_play"
+        app:layout_constraintTop_toTopOf="@id/btn_play"
+        app:layout_goneMarginStart="0dp" />
+
+    <TextView
+        android:layout_marginBottom="10dp"
+        android:id="@+id/current_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="@id/btn_play"
+        app:layout_constraintBottom_toTopOf="@id/btn_play"
+        android:text="00:00" />
+
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:id="@+id/seekbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxHeight="4dp"
+        android:secondaryProgressTint="#11ffff"
+        android:max="100"
+        android:thumbOffset="0dp"
+        android:thumb="@drawable/video_seekbar_thumb"
+        android:progressDrawable="@drawable/video_seekbar_bg"
+        app:layout_constraintBottom_toBottomOf="@id/current_time"
+        app:layout_constraintEnd_toStartOf="@id/end_time"
+        app:layout_constraintStart_toEndOf="@id/current_time"/>
+
+    <TextView
+        android:id="@+id/end_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/current_time"
+        app:layout_constraintEnd_toEndOf="@id/btn_switch_orientation"
+        android:text="00:00" />
+
+    <ImageButton
+        android:id="@+id/danmaku_visible"
+        android:background="@null"
+        android:src="@drawable/baseline_visibility_24"
+        app:layout_constraintEnd_toStartOf="@id/selections"
+        app:layout_constraintBottom_toBottomOf="@id/btn_switch_orientation"
+        android:layout_marginEnd="32dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"/>
+
+    <TextView
+        android:id="@+id/selections"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:text="选集"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/speed"
+        app:layout_goneMarginStart="0dp"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:text="1X"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_switch_orientation"
+        app:layout_goneMarginStart="0dp"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/btn_switch_orientation"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@null"
+        android:src="@drawable/baseline_zoom_out_map_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

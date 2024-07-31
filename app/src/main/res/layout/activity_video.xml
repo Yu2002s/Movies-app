@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.VideoActivity">
+
+    <com.dongyu.movies.view.player.DongYuPlayer
+        android:id="@+id/dy_player"
+        android:layout_width="match_parent"
+        android:layout_height="280dp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/movie_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:padding="10dp"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                app:layout_constraintEnd_toStartOf="@+id/search_more"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/app_name" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/movie_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp"
+                app:layout_constraintEnd_toEndOf="@+id/movie_name"
+                app:layout_constraintStart_toStartOf="@id/movie_name"
+                app:layout_constraintTop_toBottomOf="@id/movie_name"
+                tools:text="@string/app_name" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/search_more"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:text="@string/search"
+                app:contentPadding="10dp"
+                app:icon="@drawable/baseline_search_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/movie_name"
+                app:layout_constraintTop_toTopOf="@id/movie_name" />
+
+            <!--<ImageButton
+                android:id="@+id/btn_like"
+                android:contentDescription="@string/like"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:src="@drawable/baseline_star_outline_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/search_more"
+                app:layout_constraintTop_toBottomOf="@id/search_more" />-->
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/play_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/play_route"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/movie_info" />
+
+            <com.dongyu.movies.view.route.RouteView
+                android:id="@+id/route_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/play_route" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/refresh_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/refresh"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ProgressBar
+                android:id="@+id/loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

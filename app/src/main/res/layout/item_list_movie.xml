@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?attr/selectableItemBackground"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="4dp">
+
+    <ImageView
+        android:id="@+id/movie_cover"
+        android:layout_width="70dp"
+        android:layout_height="100dp"
+        android:contentDescription="@string/movie_cover"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_small_card"
+        android:textSize="10sp"
+        android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/movie_cover"
+        app:layout_constraintEnd_toEndOf="@id/movie_cover"
+        tools:text="@string/app_name"
+        tools:ignore="SmallSp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/cate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:textSize="10sp"
+        android:background="@drawable/bg_small_card"
+        android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="@id/movie_cover"
+        app:layout_constraintTop_toTopOf="@id/movie_cover"
+        tools:text="@string/app_name"
+        tools:ignore="SmallSp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/movie_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/movie_cover"
+        app:layout_constraintTop_toTopOf="@id/movie_cover"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="@string/app_name" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/movie_director"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/movie_name"
+        app:layout_constraintTop_toBottomOf="@id/movie_name"
+        tools:text="导演: 钱雁秋" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/movie_star"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="3"
+        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+        app:layout_constraintBottom_toBottomOf="@id/movie_cover"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/movie_name"
+        app:layout_constraintTop_toBottomOf="@id/movie_director"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="主演: 张子健 钱雁秋111111111111111111111111111111" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

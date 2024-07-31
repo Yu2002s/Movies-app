@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.MainActivity">
+
+    <androidx.viewpager2.widget.ViewPager2
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/main_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:fitsSystemWindows="true"
+        android:id="@+id/main_app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.search.SearchBar
+            app:layout_scrollFlags="scroll|enterAlways"
+            android:id="@+id/main_search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_search"
+            app:menu="@menu/menu_main" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <com.google.android.material.search.SearchView
+        android:id="@+id/main_search_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:hint="@string/hint_search"
+        app:animateMenuItems="true"
+        app:animateNavigationIcon="true"
+        app:layout_anchor="@id/main_search_bar">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_suggest"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/search_result"
+            android:name="com.dongyu.movies.fragment.search.SearchFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </com.google.android.material.search.SearchView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        android:layout_gravity="bottom"
+        android:id="@+id/bottom_nav"
+        app:menu="@menu/menu_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

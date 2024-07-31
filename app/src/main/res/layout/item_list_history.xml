@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:foreground="?attr/selectableItemBackground"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:contentDescription="@string/movie_cover"
+        android:id="@+id/history_img"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="70dp"
+        android:layout_height="100dp"/>
+
+    <TextView
+        android:background="@drawable/bg_small_card"
+        android:textSize="10sp"
+        android:id="@+id/total_selection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/history_img"
+        app:layout_constraintEnd_toEndOf="@id/history_img"
+        tools:text="共3集"
+        tools:ignore="SmallSp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/history_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        app:layout_constraintStart_toEndOf="@id/history_img"
+        app:layout_constraintTop_toTopOf="@id/history_img"
+        tools:text="西游记 第一季" />
+
+    <TextView
+        android:id="@+id/history_time"
+        tools:text="今天 10:00"
+        app:layout_constraintTop_toBottomOf="@id/history_name"
+        app:layout_constraintStart_toStartOf="@id/history_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/history_start_pro"
+        tools:text="03:12"
+        app:layout_constraintStart_toStartOf="@id/history_time"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/progress_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="history_end_pro,history_pro" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/history_pro"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/history_start_pro"
+        app:layout_constraintEnd_toStartOf="@id/history_end_pro"
+        app:layout_constraintStart_toEndOf="@id/history_start_pro"
+        app:layout_constraintTop_toTopOf="@id/history_start_pro"
+        tools:progress="70" />
+
+    <TextView
+        android:id="@+id/history_end_pro"
+        tools:text="03:12"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/history_start_pro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

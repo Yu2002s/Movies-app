@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/layout_line"/>
+
+    <include android:id="@+id/movie_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        layout="@layout/item_list_movie"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        tools:text="这是详情哈哈哈啊哈哈"
+        android:layout_margin="10dp"
+        android:id="@+id/movie_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>

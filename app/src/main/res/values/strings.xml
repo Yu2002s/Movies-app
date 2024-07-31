@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">冬雨影视</string>
+    <!-- 底部导航栏 -->
+    <string name="nav_home">首页</string>
+    <string name="nav_history">历史</string>
+    <string name="nav_setting">设置</string>
+    <string name="nav_download">下载</string>
+
+    <!-- 播放器相关 -->
+    <string name="video_error">播放失败了，请尝试刷新或检查网络状态</string>
+    <string name="refresh">刷新</string>
+    <string name="play_toast">请勿相信视频内的任何广告</string>
+
+    <!-- 登录相关 -->
+    <string name="hint_username">请输入用户名</string>
+    <string name="hint_password">请输入密码</string>
+    <string name="hint_code">请输入验证码</string>
+    <string name="login">登录</string>
+    <string name="get_code">获取验证码</string>
+    <string name="hint_email">请输入邮箱</string>
+    <string name="error_email">请输入正确邮箱地址</string>
+    <string name="error_password">密码必须为5到16位</string>
+    <string name="error_code">请输入6位数验证码</string>
+    <string name="sent_code">已发送(%d)</string>
+    <string name="sign_tips">未注册用户将自动注册并登录</string>
+    <string name="please_login">请登录</string>
+    <string name="click_login">点击前往登录</string>
+    <string name="movie_cover">影视封面</string>
+    <string name="hint_search">请输入关键字搜索</string>
+
+    <string name="star">主演: %s</string>
+    <string name="director">导演: %s</string>
+    <string name="total_selection">共%d集</string>
+    <string name="play_complete">已看完</string>
+    <string name="banner_img">轮播图片</string>
+
+    <string name="error_text">%s，点击刷新</string>
+    <string name="back_top">回到底部</string>
+    <string name="search">搜索</string>
+    <string name="play_route">播放线路</string>
+
+    <string name="statement">App内所有内容均来自互联网第三方站点所提供的公开引用资源收集而来，本客户端和服务端不存储任何资源，不提供资源上传和存储服务，若App侵犯了贵公司版权，请联系我进行删除。请勿相信视频内的任何广告！</string>
+    <string name="restart">重新启动</string>
+    <string name="feedback">反馈</string>
+    <string name="like">收藏</string>
+</resources>
