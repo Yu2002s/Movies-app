@@ -87,6 +87,22 @@ class VideoActivity : BaseActivity(), OnRouteChangeListener, PlayerStateListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // https://github.com/bilibili/DanmakuFlameMaster/issues/445
+        // 获取系统window支持的模式
+        val modes = window.windowManager.defaultDisplay.supportedModes
+        // 对获取的模式，基于刷新率的大小进行排序，从小到大排序
+        modes.sortBy {
+            it.refreshRate
+        }
+
+        window.let {
+            val lp = it.attributes
+            // 取出最小的那一个刷新率，直接设置给window
+            lp.preferredDisplayModeId = modes.first().modeId
+            it.attributes = lp
+        }
+
         setContentView(binding.root)
 
         init()
@@ -256,7 +272,6 @@ class VideoActivity : BaseActivity(), OnRouteChangeListener, PlayerStateListener
 
         lifecycleScope.launch {
             videoViewModel.danmakuState.collect {
-                Log.d(TAG, "danmukuUrl: $it")
                 dyPlayer.setDanmakus(it).startDanmaku(binding.routeView.currentSelectionPosition + 1)
             }
         }
@@ -448,7 +463,7 @@ class VideoActivity : BaseActivity(), OnRouteChangeListener, PlayerStateListener
             if (dyPlayer.isPreparedDanmaku && dyPlayer.isShowDanmaku) {
                 dyPlayer.hideDanmaku()
             } else {
-                dyPlayer.showManmaku()
+                dyPlayer.showDanmaku()
                 if (!dyPlayer.isPreparedDanmaku) {
                     dyPlayer.startDanmaku(routeView.selection)
                 }

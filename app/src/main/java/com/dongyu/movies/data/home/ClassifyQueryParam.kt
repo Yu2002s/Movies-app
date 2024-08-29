@@ -12,6 +12,7 @@ class ClassifyQueryParam(
     val area: String? = null,
     val year: String? = null,
     val sort: String? = null,
+    val letter: String? = null,
     val language: String? = null,
     @Expose(serialize = false, deserialize = false)
     var currentMovieId: Int = 1,

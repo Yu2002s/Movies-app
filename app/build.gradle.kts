@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.Packaging
 import com.github.megatronking.stringfog.plugin.StringFogExtension
 
 plugins {
@@ -12,7 +13,7 @@ apply(plugin = "stringfog")
 android {
     signingConfigs {
         getByName("debug") {
-            storeFile = file("D:\\appkey\\jdy.jks")
+            storeFile = file("D:\\jdy2002\\appkey\\jdy.jks")
             storePassword = "jdy200255"
             keyAlias = "jdy2002"
             keyPassword = "jdy200255"
@@ -21,7 +22,7 @@ android {
             enableV3Signing = true
         }
         create("release") {
-            storeFile = file("D:\\appkey\\jdy.jks")
+            storeFile = file("D:\\jdy2002\\appkey\\jdy.jks")
             storePassword = "jdy200255"
             keyAlias = "jdy2002"
             keyPassword = "jdy200255"
@@ -37,15 +38,15 @@ android {
         applicationId = "com.dongyu.movies"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.0.6-fix"
+        versionCode = 18
+        versionName = "1.0.81"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
 
         ndk {
             abiFilters.add("arm64-v8a")
-            // abiFilters.add("x86_64")
+            abiFilters.add("x86_64")
         }
     }
 
@@ -76,6 +77,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    packaging {
+        resources.excludes.add("META-INF/beans.xml")
     }
 }
 
@@ -119,6 +123,7 @@ dependencies {
     implementation("com.github.ctiao:ndkbitmap-x86:0.9.21")
     implementation(project(":dyplayer"))
     implementation(project(":A4ijkplayer"))
+    implementation(project(":screencast"))
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

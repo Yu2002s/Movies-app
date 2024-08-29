@@ -9,6 +9,7 @@ import com.dongyu.movies.utils.ContextUtils
 import com.dongyu.movies.utils.EncryptUtils
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.color.utilities.DynamicScheme
+import com.wanban.screencast.ScreenCastUtils
 import org.litepal.LitePal
 
 
@@ -45,6 +46,7 @@ class MoviesApplication : Application() {
         DynamicColors.applyToActivitiesIfAvailable(this)
         LitePal.initialize(this)
         EncryptUtils.getInstance().init()
+        ScreenCastUtils.init(this)
     }
 
     // JNI接口方法

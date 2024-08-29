@@ -31,6 +31,15 @@
         app:title="自动全屏" />
 
     <SwitchPreferenceCompat
+        app:iconSpaceReserved="false"
+        android:key="small_progress"
+        app:title="小进度条"
+        app:defaultValue="false"
+        android:switchTextOn="开启小进度条"
+        app:switchTextOff="关闭小进度条"
+        android:summary="页面底部的小进度条(重进生效)"/>
+
+    <SwitchPreferenceCompat
         app:defaultValue="true"
         app:iconSpaceReserved="false"
         app:key="auto_switch_route"

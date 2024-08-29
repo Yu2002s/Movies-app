@@ -47,7 +47,6 @@
         <activity
             android:name=".activity.VideoActivity"
             android:configChanges="screenSize|orientation" />
-        <activity android:name=".activity.ArticleActivity" />
         <activity android:name=".activity.LoginActivity"
             android:windowSoftInputMode="adjustResize|stateAlwaysVisible"/>
         <activity android:name=".activity.CrashActivity"/>

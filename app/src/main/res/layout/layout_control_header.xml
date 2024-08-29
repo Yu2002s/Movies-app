@@ -43,6 +43,14 @@
 
         <ImageButton
             android:layout_marginEnd="32dp"
+            android:id="@+id/video_projection"
+            android:background="@null"
+            android:src="@drawable/baseline_connected_tv_24"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <ImageButton
+            android:layout_marginEnd="32dp"
             android:id="@+id/video_download"
             android:background="@null"
             android:src="@drawable/baseline_download_24"

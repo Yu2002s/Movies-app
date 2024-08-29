@@ -1,7 +1,9 @@
 package com.dongyu.movies.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,6 +13,7 @@ import com.dongyu.movies.databinding.ItemListSearchBinding
 import com.dongyu.movies.event.OnItemClickListener
 import com.dongyu.movies.utils.Checker
 import com.dongyu.movies.utils.dp2px
+import com.dongyu.movies.utils.ioThread
 
 class SearchSuggestAdapter :
   ListAdapter<SearchSuggestItem, SearchSuggestAdapter.SearchViewHolder>(DIFF_CALL_BACK) {
@@ -49,14 +52,15 @@ class SearchSuggestAdapter :
   class SearchViewHolder(val binding: ItemListSearchBinding) : RecyclerView.ViewHolder(binding.root) {
 
     init {
-      binding.root.compoundDrawablePadding = 10.dp2px()
+      binding.tvName.compoundDrawablePadding = 10.dp2px()
     }
 
     fun bindTo(searchSuggestItem: SearchSuggestItem?) {
-      binding.root.text = searchSuggestItem?.name
+      binding.tvName.text = searchSuggestItem?.name
       val icon = if (searchSuggestItem is SearchSuggestItem.Record) R.drawable.baseline_history_24
       else R.drawable.baseline_search_24
-      binding.root.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+      binding.tvName.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+      binding.btnDelete.isVisible = searchSuggestItem is SearchSuggestItem.Record
     }
   }
 
@@ -65,6 +69,12 @@ class SearchSuggestAdapter :
     return SearchViewHolder(ItemListSearchBinding.inflate(inflater, parent, false)).apply {
       binding.root.setOnClickListener {
         onItemClickListener.onItemClick(it, absoluteAdapterPosition)
+      }
+      binding.btnDelete.setOnClickListener {
+        val item = getItem(absoluteAdapterPosition) as SearchSuggestItem.Record
+        item.history.delete()
+        val list = currentList.filter { it.name != item.name }
+        submitList(list)
       }
     }
   }

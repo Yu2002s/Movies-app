@@ -37,3 +37,13 @@ fun getWindowWidth(): Int {
         windowManager.defaultDisplay.width
     }
 }
+
+fun getWindowHeight(): Int {
+    val context = MoviesApplication.context
+    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        windowManager.currentWindowMetrics.bounds.height()
+    } else {
+        windowManager.defaultDisplay.height
+    }
+}

@@ -53,5 +53,15 @@ class SPConfig {
          * 是否显示弹幕
          */
         const val PLAYER_SHOW_DANMAKU = "show_danmaku"
+
+        /**
+         * 播放显示缩放模式
+         */
+        const val PLAYER_SCALE_MODE = "play_scale_mode"
+
+        /**
+         * 全屏底部的小进度条
+         */
+        const val PLAYER_SMALL_PROGRESS = "small_progress"
     }
 }

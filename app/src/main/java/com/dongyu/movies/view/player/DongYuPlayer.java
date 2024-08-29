@@ -1,6 +1,7 @@
 package com.dongyu.movies.view.player;
 
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.BatteryManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -31,6 +33,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.dongyu.movies.BiliDanmukuParser;
+import com.dongyu.movies.MoviesApplication;
 import com.dongyu.movies.MyDanmakuLoader;
 import com.dongyu.movies.R;
 import com.dongyu.movies.config.SPConfig;
@@ -41,12 +44,14 @@ import com.dongyu.movies.databinding.LayoutSmallProgressBinding;
 import com.dongyu.movies.databinding.LayoutStatusBarBinding;
 import com.dongyu.movies.databinding.LayoutToastBinding;
 import com.dongyu.movies.databinding.LayoutVideoErrorBinding;
+import com.dongyu.movies.dialog.ScreenProjectionDialog;
 import com.dongyu.movies.utils.DisplayUtilsKt;
 import com.dongyu.movies.utils.IOKt;
 import com.dongyu.movies.utils.SpUtils;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.view.player.base.BasePlayer;
 import com.dongyu.movies.view.player.base.PlayerStateListener;
+import com.wanban.screencast.ScreenCastUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -122,6 +127,8 @@ public class DongYuPlayer extends BasePlayer {
 
     private final List<String> mDanmakuUrlList = new ArrayList<>();
 
+    private ScreenProjectionDialog screenProjectionDialog;
+
     public void setPlayerStateListener(PlayerStateListener playerStateListener) {
         this.playerStateListener = playerStateListener;
     }
@@ -190,6 +197,11 @@ public class DongYuPlayer extends BasePlayer {
         initVisibilityMode(headerBinding.getRoot(), middleBinding.getRoot(), bottomBinding);
 
         initDanmakuView();
+        initScaleMode();
+    }
+
+    private void initScaleMode() {
+        bottomBinding.scale.setText(getScaleMode());
     }
 
     private void initDanmakuView() {
@@ -220,11 +232,6 @@ public class DongYuPlayer extends BasePlayer {
 
             @Override
             public void updateTimer(DanmakuTimer timer) {
-                // 弹幕速度
-                /*if (danmakuSpeed != 1) {
-                    timer.add((long) (timer.lastInterval() * (danmakuSpeed - 1)));
-                }*/
-                // timer.update(getRealCurrentProgress());
             }
 
             @Override
@@ -293,7 +300,7 @@ public class DongYuPlayer extends BasePlayer {
         return mDanmakuView.isPrepared();
     }
 
-    public void showManmaku() {
+    public void showDanmaku() {
         if (!isShowDanmaku() && mDanmakuView.isPrepared()) {
             mDanmakuView.show();
             checkDanmakuCurrentTime();
@@ -341,7 +348,7 @@ public class DongYuPlayer extends BasePlayer {
     }
 
     private void checkDanmakuCurrentTime() {
-        if (mDanmakuView.getCurrentTime() != getCurrentProgress()) {
+        if (mDanmakuView.isPrepared() && mDanmakuView.getCurrentTime() != getCurrentProgress()) {
             Log.i(TAG, "DanMuKuCurrentTime: " + mDanmakuView.getCurrentTime() + ", currentProgress: " + getCurrentProgress());
             mDanmakuView.seekTo(getCurrentProgress());
         }
@@ -350,7 +357,7 @@ public class DongYuPlayer extends BasePlayer {
     @Override
     public void resume() {
         super.resume();
-        if (mDanmakuView != null && mDanmakuView.isPrepared() && mDanmakuView.isPaused()) {
+        if (mDanmakuView != null) {
             mDanmakuView.resume();
             checkDanmakuCurrentTime();
         }
@@ -493,6 +500,22 @@ public class DongYuPlayer extends BasePlayer {
             });
         });
 
+        bottomBinding.scale.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu menu = createVideoScaleMenu(v);
+                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        VideoScaleMode mode = VideoScaleMode.getModeForTitle((String) item.getTitle());
+                        setScaleMode(mode);
+                        return true;
+                    }
+                });
+                menu.show();
+            }
+        });
+
         DanmakuTouchHelper mTouchHelper = null;
         try {
             Field field = mDanmakuView.getClass().getDeclaredField("mTouchHelper");
@@ -524,6 +547,18 @@ public class DongYuPlayer extends BasePlayer {
                 isEventConsumed = finalMTouchHelper.onTouchEvent(event);
             }
             return true;
+        });
+
+        headerBinding.videoProjection.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                screenProjectionDialog = new ScreenProjectionDialog();
+                Bundle bundle = new Bundle();
+                bundle.putString("url", getIjkMediaPlayer().getDataSource());
+                bundle.putString("title", getTitle().toString());
+                screenProjectionDialog.setArguments(bundle);
+                screenProjectionDialog.show(getActivity().getSupportFragmentManager(), "screenProjection");
+            }
         });
     }
 
@@ -559,6 +594,26 @@ public class DongYuPlayer extends BasePlayer {
                 break;
             }
         }
+    }
+
+    private PopupMenu createVideoScaleMenu(View anchor) {
+        PopupMenu menu = new PopupMenu(getContext(), anchor);
+        for (VideoScaleMode mode : VideoScaleMode.values()) {
+            menu.getMenu().add(mode.getTitle());
+        }
+        return menu;
+    }
+
+    public void setScaleMode(VideoScaleMode mode) {
+        SpUtils.INSTANCE.put(SP_NAME, SPConfig.PLAYER_SCALE_MODE, mode.name());
+        // 重置播放画面
+        setSurfaceView();
+        bottomBinding.scale.setText(mode.getTitle());
+    }
+
+    private String getScaleMode() {
+        String mode = SpUtils.INSTANCE.getOrDefault(SP_NAME, SPConfig.PLAYER_SCALE_MODE, VideoScaleMode.AUTO.name());
+        return VideoScaleMode.valueOf(mode).getTitle();
     }
 
     private void getNowTime() {
@@ -625,6 +680,14 @@ public class DongYuPlayer extends BasePlayer {
 
     private void getPlayerSmallProgressBar() {
         if (!isShowController() && isFullScreen()) {
+            boolean isShowSmallProgressBar = Boolean.TRUE
+                    .equals(SpUtils.INSTANCE.getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_SMALL_PROGRESS, false));
+             if (!isShowSmallProgressBar) {
+                 if (smallProgressBar != null) {
+                     smallProgressBar.setVisibility(GONE);
+                 }
+                 return;
+             }
             if (smallProgressBar == null) {
                 smallProgressBar = LayoutSmallProgressBinding
                         .inflate(LayoutInflater.from(getContext()), this, false).getRoot();
@@ -632,6 +695,22 @@ public class DongYuPlayer extends BasePlayer {
             }
             smallProgressBar.setVisibility(VISIBLE);
             smallProgressBar.setMax((int) getEndProgress());
+        }
+    }
+
+    /**
+     * 设置是否显示全屏底部小进度条
+     */
+    public void setSmallProgressBarStatus(boolean isShow) {
+        SpUtils.INSTANCE.put(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_SMALL_PROGRESS, isShow);
+        if (!isFullScreen()) {
+            return;
+        }
+        if (isShow) {
+            hideController();
+            getPlayerSmallProgressBar();
+        } else if (smallProgressBar != null) {
+            smallProgressBar.setVisibility(GONE);
         }
     }
 
@@ -700,6 +779,8 @@ public class DongYuPlayer extends BasePlayer {
         bottomBinding.speed.setVisibility(isFullScreen ? View.VISIBLE : View.GONE);
 
         bottomBinding.selections.setVisibility(isFullScreen ? View.VISIBLE : View.GONE);
+
+        bottomBinding.scale.setVisibility(isFullScreen ? VISIBLE : GONE);
 
         setPlayerPadding(isFullScreen);
 
@@ -842,13 +923,18 @@ public class DongYuPlayer extends BasePlayer {
         float speed = getIjkMediaPlayer().getSpeed(1f);
         showMessage(R.drawable.baseline_fast_forward_24, speed + "倍速播放中");
         // mDanmakuContext.setScrollSpeedFactor(speed);
-        mDanmakuView.pause();
+        if (mDanmakuView.isPrepared()) {
+            mDanmakuView.pause();
+        }
     }
 
     @Override
     public void onStopLongClick() {
         super.onStopLongClick();
-        mDanmakuView.seekTo(getRealCurrentProgress());
+        setSpeed(getVideoSpeed());
+        if (mDanmakuView.isPrepared()) {
+            mDanmakuView.seekTo(getRealCurrentProgress());
+        }
     }
 
     @Override
@@ -900,9 +986,29 @@ public class DongYuPlayer extends BasePlayer {
     @Override
     public void seekTo(long to) {
         super.seekTo(to);
-        if (mDanmakuView != null) {
+        if (mDanmakuView != null && mDanmakuView.isPrepared()) {
             mDanmakuView.seekTo(to);
             mDanmakuView.pause();
+        }
+    }
+
+    @Override
+    public void setPlayerSize(LayoutParams layoutParams, int width, int height) {
+        super.setPlayerSize(layoutParams, width, height);
+        String mode = SpUtils.INSTANCE.getOrDefault(SP_NAME, SPConfig.PLAYER_SCALE_MODE, VideoScaleMode.AUTO.name());
+        assert mode != null;
+        switch (mode) {
+            case "AUTO":
+                super.setPlayerSize(layoutParams, width, height);
+                break;
+            case "FULL":
+                layoutParams.width = DisplayUtilsKt.getWindowWidth();
+                if (isFullScreen()) {
+                    layoutParams.height = DisplayUtilsKt.getWindowHeight();
+                } else {
+                    layoutParams.height = DEFAULT_PLAYER_HEIGHT;
+                }
+                break;
         }
     }
 }

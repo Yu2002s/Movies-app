@@ -73,7 +73,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     /**
      * 播放器默认的高度
      */
-    private static final int DEFAULT_PLAYER_HEIGHT = DisplayUtilsKt
+    public static final int DEFAULT_PLAYER_HEIGHT = DisplayUtilsKt
             .dp2px(280, MoviesApplication.context);
 
 
@@ -425,7 +425,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     @Override
     public void onStopLongClick() {
         Log.i(TAG, "onStopLongClick");
-        setSpeed(1f);
+        // setSpeed(1f);
         hideMessage();
     }
 
@@ -1211,10 +1211,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         setSurfaceSize(0, 0, Gravity.CENTER);
     }
 
-    public void setSurfaceSize(@Px int width, @Px int height, @GravityInt int gravity) {
-        FrameLayout.LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
-        layoutParams.gravity = gravity;
-
+    public void setPlayerSize(FrameLayout.LayoutParams layoutParams, @Px int width, @Px int height) {
         int videoHeight;
         int videoWidth;
 
@@ -1236,6 +1233,15 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
 
         layoutParams.width = (int) (videoWidth * scale);
         layoutParams.height = (int) (videoHeight * scale);
+
+        // surfaceView.getHolder().setFixedSize(layoutParams.width, layoutParams.height);
+    }
+
+    public void setSurfaceSize(@Px int width, @Px int height, @GravityInt int gravity) {
+        FrameLayout.LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
+        layoutParams.gravity = gravity;
+
+        setPlayerSize(layoutParams, width, height);
 
         requestLayout();
     }

@@ -291,7 +291,7 @@ class MainActivity : AppCompatActivity() {
         }.onFailure {
             MaterialAlertDialogBuilder(this).apply {
                 setTitle("检查更新失败")
-                setMessage("请检查网络后尝试重新打开或使用备用地址更新")
+                setMessage("服务器可能维护升级中...请耐心等待！请检查网络后尝试重新打开或使用备用地址更新")
                 setCancelable(false)
                 setPositiveButton("备用地址") { _, _ ->
                     val intent =
