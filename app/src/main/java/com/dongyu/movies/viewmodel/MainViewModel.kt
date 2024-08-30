@@ -7,9 +7,11 @@ import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.data.home.MainData
 import com.dongyu.movies.network.HomeRepository
 import com.dongyu.movies.utils.SpUtils.put
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {

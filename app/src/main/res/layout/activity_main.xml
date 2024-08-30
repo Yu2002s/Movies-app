@@ -19,7 +19,7 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.search.SearchBar
-            app:layout_scrollFlags="scroll|enterAlways"
+            app:layout_scrollFlags="noScroll"
             android:id="@+id/main_search_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,7 +53,6 @@
     </com.google.android.material.search.SearchView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         android:layout_gravity="bottom"
         android:id="@+id/bottom_nav"
         app:menu="@menu/menu_bottom"

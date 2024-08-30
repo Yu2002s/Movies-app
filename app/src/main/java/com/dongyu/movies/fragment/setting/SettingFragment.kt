@@ -14,11 +14,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.dongyu.movies.MoviesApplication
-import com.dongyu.movies.MoviesApplication.Companion.QQ_GROUP_URL
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.LoginActivity
 import com.dongyu.movies.base.BaseRepository
+import com.dongyu.movies.config.AppConfig
+import com.dongyu.movies.config.AppConfig.QQ_GROUP_URL
 import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.data.movie.MovieResponse
 import com.dongyu.movies.data.user.User
@@ -105,7 +105,7 @@ class SettingFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("group")?.setOnPreferenceClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(MoviesApplication.GROUP_URL))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
             startActivity(intent)
             true
         }
@@ -182,7 +182,7 @@ class SettingFragment : PreferenceFragmentCompat() {
     }
 
     private fun goPageHome() {
-        startActivity(Intent(Intent.ACTION_VIEW, MoviesApplication.APP_PAGE_HOME.toUri()))
+        startActivity(Intent(Intent.ACTION_VIEW, AppConfig.APP_PAGE_HOME.toUri()))
     }
 
     /**

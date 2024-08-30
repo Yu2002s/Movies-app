@@ -29,6 +29,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.dongyu.movies.MoviesApplication
 import com.dongyu.movies.R
 import com.dongyu.movies.adapter.SearchSuggestAdapter
+import com.dongyu.movies.config.AppConfig
 import com.dongyu.movies.data.search.SearchUiResult
 import com.dongyu.movies.data.search.SearchUiSuggest
 import com.dongyu.movies.data.update.Update
@@ -282,7 +283,7 @@ class MainActivity : AppCompatActivity() {
                     exitProcess(0)
                 }
                 setNegativeButton("Telegram") { _, _ ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(MoviesApplication.GROUP_URL))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
                     startActivity(intent)
                     exitProcess(0)
                 }
@@ -295,12 +296,12 @@ class MainActivity : AppCompatActivity() {
                 setCancelable(false)
                 setPositiveButton("备用地址") { _, _ ->
                     val intent =
-                        Intent(Intent.ACTION_VIEW, Uri.parse(MoviesApplication.GIT_RELEASE_URL))
+                        Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GIT_RELEASE_URL))
                     startActivity(intent)
                     exitProcess(0)
                 }
                 setNeutralButton("Telegram") { _, _ ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(MoviesApplication.GROUP_URL))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
                     startActivity(intent)
                     exitProcess(0)
                 }

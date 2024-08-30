@@ -9,5 +9,5 @@ import java.io.File
 fun String.toFileUri(): Uri {
     val context = MoviesApplication.context
     val pkgName = context.packageName
-    return FileProvider.getUriForFile(context, "$pkgName.fileProvider", File(this))
+    return FileProvider.getUriForFile(context, "$pkgName.fileprovider", File(this))
 }

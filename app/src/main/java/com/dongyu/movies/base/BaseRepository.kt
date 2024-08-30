@@ -18,7 +18,10 @@ import com.dongyu.movies.utils.SpUtils.getOrDefaultNumber
 import com.dongyu.movies.utils.SpUtils.put
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.utils.startActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -29,7 +32,8 @@ import retrofit2.create
 suspend fun <T> requestCallFlow(block: suspend () -> Call<BaseResponse<T>>) =
     requestFlow { block.invoke().await() }
 
-suspend fun <T> requestFlow(block: suspend () -> BaseResponse<T>) = flowOf(requestResult(block))
+suspend fun <T> requestFlow(block: suspend () -> BaseResponse<T>) =
+    flowOf(requestResult(block)).flowOn(Dispatchers.IO)
 
 suspend fun <T> requestResult(block: suspend () -> BaseResponse<T>) = runCatching {
     val response = block.invoke()
@@ -48,7 +52,7 @@ object BaseRepository {
     private const val API_HOST_RELEASE = "http://movies.jdynb.xyz"
 
     private val BASE_URL = API_HOST_RELEASE
-            // if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
+    // if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
 
     private const val SP_USER = "user"
     private const val KEY_USER_ID = "id"
@@ -75,7 +79,7 @@ object BaseRepository {
         ) {
             user = User(id, nickname, email, avatar)
         }
-         this.token = token
+        this.token = token
     }
 
     fun isLogin() = token != null

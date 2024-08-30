@@ -4,8 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.view.WindowManager
-import androidx.core.view.DisplayCompat
-import androidx.core.view.WindowCompat
 import com.dongyu.movies.MoviesApplication
 
 fun Int.dp2px(context: Context = MoviesApplication.context): Int {

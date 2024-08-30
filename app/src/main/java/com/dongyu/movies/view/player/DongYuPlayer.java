@@ -1,7 +1,6 @@
 package com.dongyu.movies.view.player;
 
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -32,9 +31,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.dongyu.movies.BiliDanmukuParser;
-import com.dongyu.movies.MoviesApplication;
-import com.dongyu.movies.MyDanmakuLoader;
+import com.dongyu.movies.utils.player.BiliDanmukuParser;
+import com.dongyu.movies.utils.player.MyDanmakuLoader;
 import com.dongyu.movies.R;
 import com.dongyu.movies.config.SPConfig;
 import com.dongyu.movies.databinding.LayoutControlBottomBinding;
@@ -51,7 +49,6 @@ import com.dongyu.movies.utils.SpUtils;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.view.player.base.BasePlayer;
 import com.dongyu.movies.view.player.base.PlayerStateListener;
-import com.wanban.screencast.ScreenCastUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

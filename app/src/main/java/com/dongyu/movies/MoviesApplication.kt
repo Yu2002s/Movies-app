@@ -3,29 +3,24 @@ package com.dongyu.movies
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import androidx.core.content.ContextCompat
+import com.cat.sdk.ADMConfig
+import com.cat.sdk.SadManager
+import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.utils.Checker
 import com.dongyu.movies.utils.ContextUtils
 import com.dongyu.movies.utils.EncryptUtils
 import com.google.android.material.color.DynamicColors
-import com.google.android.material.color.utilities.DynamicScheme
 import com.wanban.screencast.ScreenCastUtils
 import org.litepal.LitePal
-
 
 class MoviesApplication : Application() {
 
     companion object {
+        /**
+         * 全局AppContext
+         */
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
-
-        const val APP_PAGE_HOME = "http://jdynb.xyz/movie"
-
-        const val GROUP_URL = "https://t.me/dongyumovies"
-
-        const val GIT_RELEASE_URL = "https://gitee.com/jdy2002/movies/releases"
-
-        const val QQ_GROUP_URL = "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ftRJyAMQkZG_cVmVsMjFiMIhclwHIBsz&authKey=t26K2XvCPFEmaWGtzekfP8f5n86ulJtW%2F23xOqyKw%2Fk8RNVYDKFAnbSZyjvYkWyj&noverify=0&group_code=697470084"
 
         @JvmStatic
         // 暴露给本地代码的方法，用于获取对象的简单类名
@@ -39,14 +34,31 @@ class MoviesApplication : Application() {
         Checker.verifySignature(ctx)
     }
 
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        // MultiDex.install(base)
+    }
+
     override fun onCreate() {
         super.onCreate()
         context = this
+        // 初始化异常处理器
         CrashHandler.getInstance().init()
+        // MD3动态配色
         DynamicColors.applyToActivitiesIfAvailable(this)
+        // 初始化数据库操作程序
         LitePal.initialize(this)
+        // 初始化加密程序
         EncryptUtils.getInstance().init()
+        // 初始化投屏
         ScreenCastUtils.init(this)
+        // 初始化广告
+        val admConfig = ADMConfig.Builder()
+            .appKey(ADConfig.APP_ID)
+            .oaid(ADConfig.OA_ID)
+            .debug(true)
+            .build()
+        SadManager.getInstance().initAd(this, admConfig)
     }
 
     // JNI接口方法

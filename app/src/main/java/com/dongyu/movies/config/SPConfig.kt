@@ -1,5 +1,8 @@
 package com.dongyu.movies.config
 
+/**
+ * SharedPreference key配置
+ */
 class SPConfig {
 
     companion object {

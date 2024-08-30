@@ -1,7 +1,6 @@
 package com.dongyu.movies.fragment.home
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,40 +15,33 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
+import com.cat.sdk.ad.ADBannerAd
+import com.cat.sdk.ad.ADBannerAd.ADBannerAdListener
+import com.cat.sdk.ad.ADMParams
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.VideoActivity
 import com.dongyu.movies.adapter.CardAdapter
 import com.dongyu.movies.adapter.RankAdapter
 import com.dongyu.movies.base.BaseFragment
+import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.data.home.BannerItem
 import com.dongyu.movies.data.home.MainData
 import com.dongyu.movies.data.home.MoviesCard
 import com.dongyu.movies.data.home.RankItem
 import com.dongyu.movies.data.movie.BaseMovieItem
-import com.dongyu.movies.data.movie.MovieItem
 import com.dongyu.movies.data.movie.PlayParam
 import com.dongyu.movies.databinding.FragmentMainBinding
-import com.dongyu.movies.databinding.ItemListBannerBinding
 import com.dongyu.movies.dialog.RouteDialog
 import com.dongyu.movies.event.OnCardItemClickListener
 import com.dongyu.movies.event.OnItemClickListener
-import com.dongyu.movies.utils.dp2px
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.MainViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainFragment : BaseFragment() {
@@ -79,6 +71,8 @@ class MainFragment : BaseFragment() {
 
     private val rankAdapter = RankAdapter(rankList)
 
+    private lateinit var adBannerAd: ADBannerAd
+
     private var isDragging = false
 
     override fun onCreateView(
@@ -104,6 +98,7 @@ class MainFragment : BaseFragment() {
                     bannerList.addAll(data.bannerList)
                     updateBannerView()
                     updateCardList(data)
+                    initAdBanner()
                 }.onFailure { error ->
                     Log.e(TAG, error.message.toString())
                     showErrorText(error.message)
@@ -228,6 +223,45 @@ class MainFragment : BaseFragment() {
         // rankAdapter.notifyDataSetChanged()
     }
 
+    private fun getWidthDp(): Int {
+        // 获取屏幕尺寸
+        val displayMetrics = this.resources.displayMetrics
+        return (displayMetrics.widthPixels / displayMetrics.density).toInt()
+    }
+
+    private fun initAdBanner() {
+        if (::adBannerAd.isInitialized) {
+            return
+        }
+        val admParams = ADMParams.Builder()
+            .slotId(ADConfig.BANNER_ID)
+            .layout(binding.adBanner)
+            .width(this.getWidthDp())
+            .height(0)
+            .build()
+        adBannerAd = ADBannerAd(requireActivity(), admParams, object : ADBannerAdListener {
+            override fun onADLoadStart() {
+            }
+
+            override fun onADShow() {
+            }
+
+            override fun onADLoadedFail(code: Int, error: String) {
+                Log.i(TAG, "onADLoadedFail")
+            }
+
+            override fun onADClick() {
+            }
+
+            override fun onADLoadSuccess() {
+            }
+
+            override fun onADClose() {
+            }
+        })
+        adBannerAd.loadAD()
+    }
+
     override fun onResume() {
         super.onResume()
         isDragging = false
@@ -271,5 +305,10 @@ class MainFragment : BaseFragment() {
         super.onDestroyView()
         _binding = null
         bannerList.clear()
+
+        // 对banner广告进行销毁
+        if (::adBannerAd.isInitialized) {
+            adBannerAd.destory()
+        }
     }
 }

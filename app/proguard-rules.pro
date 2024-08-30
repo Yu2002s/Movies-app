@@ -259,3 +259,109 @@
 -keep class tv.danmaku.ijk.media.player.ffmpeg.FFmpegApi{*;}
 
 -keep class com.zh.pocket.**{*;}
+
+#====== 混淆 START======
+-keep class com.cat.sdk.** { *; }
+-keep public class com.ubix.** { *;}
+-keep public class com.ubixnow.** { *;}
+-keep class cn.vlion.ad.inland.**{*;}
+-keep class com.xunmeng {*;}
+-keep class com.jd.ad.sdk.** { *; }
+-keep class sun.misc.Unsafe { *; }
+-keep class com.sigmob.**.**{*;}
+-keep interface com.sigmob.**.**{*;}
+-keep class com.czhj.**{*;}
+-keep interface com.czhj.**{*;}
+-keepattributes *Annotation*
+-keep enum mobi.oneway.export.* {*;}
+-keep class mobi.oneway.export.** {*;}
+-keep class mobi.oneway.sd.**{*;}
+-keep class com.alibaba.fastjson.** {*;}
+#====== 混淆 END======
+#====== 京东混淆 START======
+-keep class com.jd.ad.sdk.** { *; }
+#====== 京东混淆 END======
+#====== 广点通混淆 START======
+-keep class com.qq.e.** {
+public protected *;
+}
+#======广点通混淆 END======
+#====== 百度混淆 START======
+-dontwarn com.baidu.mobads.sdk.api.**
+-keep class com.baidu.mobads.** { *; }
+-keep class com.style.widget.** {*;}
+-keep class com.component.** {*;}
+-keep class com.baidu.ad.magic.flute.** {*;}
+-keep class com.baidu.mobstat.forbes.** {*;}
+#9.22版本新增加混淆
+-keep class android.support.v7.widget.RecyclerView {*;}
+-keepnames class android.support.v7.widget.RecyclerView$* {
+    public <fields>;
+    public <methods>;
+}
+-keep class android.support.v7.widget.LinearLayoutManager {*;}
+-keep class android.support.v7.widget.PagerSnapHelper {*;}
+-keep class android.support.v4.view.ViewCompat {*;}
+-keep class android.support.v4.util.LongSparseArray {*;}
+-keep class android.support.v4.util.ArraySet {*;}
+-keep class android.support.v4.view.accessibility.AccessibilityNodeInfoCompat {*;}
+#======百度混淆 END======
+#====== 快手混淆 START======
+-keep class org.chromium.** {*;}
+-keep class org.chromium.** { *; }
+-keep class aegon.chrome.** { *; }
+-keep class com.ksad.**{ *; }
+-keep class com.kwad.**{ *; }
+-keep class com.kwai.**{ *; }
+-keep class com.yxcorp.**{ *; }
+-dontwarn com.kwai.**
+-dontwarn com.kwad.**
+-dontwarn com.ksad.**
+-dontwarn aegon.chrome.**
+#======快手混淆 END======
+#============================ 穿山甲混淆 START ==========================
+-keep class com.bytedance.pangle.** {*;}
+-keep class com.bytedance.sdk.openadsdk.** { *; }
+-keep class com.bytedance.frameworks.** { *; }
+-keep class ms.bd.c.Pgl.**{*;}
+-keep class com.bytedance.mobsec.metasec.ml.**{*;}
+-keep class com.ss.android.**{*;}
+-keep class com.bytedance.embedapplog.** {*;}
+-keep class com.bytedance.embed_dr.** {*;}
+-keep class com.bykv.vk.** {*;}
+-keep class com.bytedance.msdk.base.TTBaseAd{*;}
+-keep class com.bytedance.msdk.adapter.TTAbsAdLoaderAdapter{
+    public *;
+    protected <fields>;
+}
+
+#============================ 穿山甲混淆 END ==========================
+#============================ 倍孜混淆START ============================
+-dontwarn com.beizi.fusion.**
+-dontwarn com.beizi.ad.**
+-keep class com.beizi.fusion.** {*; }
+-keep class com.beizi.ad.** {*; }
+#============================ 倍孜混淆 END ==========================
+
+#============================ okid START ============================
+-keep class sun.misc.Unsafe { *; }
+-dontwarn java.nio.file.*
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+-keep class okio.**{*;}
+-dontwarn okio.**
+-dontwarn com.bun.**
+-keep class com.bun.** {*;}
+-keep class a.**{*;}
+-keep class XI.CA.XI.**{*;}
+-keep class XI.K0.XI.**{*;}
+-keep class XI.XI.K0.**{*;}
+-keep class XI.vs.K0.**{*;}
+-keep class XI.xo.XI.XI.**{*;}
+-keep class com.asus.msa.SupplementaryDID.**{*;}
+-keep class com.asus.msa.sdid.**{*;}
+-keep class com.huawei.hms.ads.identifier.**{*;}
+-keep class com.samsung.android.deviceidservice.**{*;}
+-keep class com.zui.opendeviceidlibrary.**{*;}
+-keep class org.json.**{*;}
+-keep public class com.netease.nis.sdkwrapper.Utils {public <methods>;}
+#============================ okid END ==========================

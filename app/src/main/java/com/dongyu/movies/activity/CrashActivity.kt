@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import com.dongyu.movies.MoviesApplication
 import com.dongyu.movies.base.BaseActivity
+import com.dongyu.movies.config.AppConfig
 import com.dongyu.movies.databinding.ActivityCrashBinding
 
 class CrashActivity: BaseActivity() {
@@ -30,7 +31,7 @@ class CrashActivity: BaseActivity() {
         }
 
         binding.feedback.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(MoviesApplication.QQ_GROUP_URL)))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.QQ_GROUP_URL)))
         }
     }
 }

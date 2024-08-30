@@ -1,6 +1,6 @@
 package com.dongyu.movies.data.home
 
-import com.dongyu.movies.data.PageResult
+import com.dongyu.movies.data.page.PageResult
 import com.dongyu.movies.data.movie.BaseMovieItem
 
 data class CategoryData(

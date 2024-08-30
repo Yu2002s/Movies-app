@@ -1,5 +1,8 @@
 import com.android.build.api.dsl.Packaging
 import com.github.megatronking.stringfog.plugin.StringFogExtension
+import org.jetbrains.kotlin.cli.jvm.main
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
+import org.jetbrains.kotlin.gradle.targets.js.npm.includedRange
 
 plugins {
     id("com.android.application")
@@ -44,9 +47,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
 
+        multiDexEnabled = true
+
         ndk {
             abiFilters.add("arm64-v8a")
-            abiFilters.add("x86_64")
+            // abiFilters.add("x86_64")
         }
     }
 
@@ -57,10 +62,17 @@ android {
 
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("String", "API_HOST", "\"https://jdynb.xyz\"")
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("libs")
         }
     }
 
@@ -100,11 +112,12 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.appcompat:appcompat:1.6.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
     implementation("org.litepal.guolindev:core:3.2.3")
+    implementation("com.alibaba:fastjson:1.1.34")
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     implementation("org.jsoup:jsoup:1.17.2")
     // https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
@@ -117,7 +130,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     ksp("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
     implementation("com.github.ctiao:DanmakuFlameMaster:0.9.25")
     implementation("com.github.ctiao:ndkbitmap-armv7a:0.9.21")
     implementation("com.github.ctiao:ndkbitmap-x86:0.9.21")

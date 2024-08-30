@@ -1,5 +1,11 @@
 <resources>
+    <!-- App相关 -->
     <string name="app_name">冬雨影视</string>
+    <string name="app_slogan">你想看的这里都有</string>
+
+    <!-- 布局相关配置 -->
+    <string name="appbar_behavior">com.google.android.material.appbar.AppBarLayout$Behavior</string>
+
     <!-- 底部导航栏 -->
     <string name="nav_home">首页</string>
     <string name="nav_history">历史</string>
@@ -25,20 +31,23 @@
     <string name="sign_tips">未注册用户将自动注册并登录</string>
     <string name="please_login">请登录</string>
     <string name="click_login">点击前往登录</string>
+
+    <!-- 影视相关 -->
     <string name="movie_cover">影视封面</string>
     <string name="hint_search">请输入关键字搜索</string>
-
     <string name="star">主演: %s</string>
     <string name="director">导演: %s</string>
     <string name="total_selection">共%d集</string>
     <string name="play_complete">已看完</string>
     <string name="banner_img">轮播图片</string>
+    <string name="play_route">播放线路</string>
 
+    <!-- loading -->
     <string name="error_text">%s，点击刷新</string>
     <string name="back_top">回到底部</string>
     <string name="search">搜索</string>
-    <string name="play_route">播放线路</string>
 
+    <!-- 设置界面和配置 -->
     <string name="statement">App内所有内容均来自互联网第三方站点所提供的公开引用资源收集而来，本客户端和服务端不存储任何资源，不提供资源上传和存储服务，若App侵犯了贵公司版权，请联系我进行删除。请勿相信视频内的任何广告！</string>
     <string name="restart">重新启动</string>
     <string name="feedback">反馈</string>
