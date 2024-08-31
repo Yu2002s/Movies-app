@@ -1,8 +1,6 @@
 package com.dongyu.movies.base
 
 import android.os.Looper
-import android.util.Log
-import com.dongyu.movies.BuildConfig
 import com.dongyu.movies.activity.LoginActivity
 import com.dongyu.movies.api.AppService
 import com.dongyu.movies.api.HomeService
@@ -21,7 +19,6 @@ import com.dongyu.movies.utils.startActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit

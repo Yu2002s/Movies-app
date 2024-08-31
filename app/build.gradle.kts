@@ -134,6 +134,8 @@ dependencies {
     implementation("com.github.ctiao:DanmakuFlameMaster:0.9.25")
     implementation("com.github.ctiao:ndkbitmap-armv7a:0.9.21")
     implementation("com.github.ctiao:ndkbitmap-x86:0.9.21")
+    implementation("io.github.scwang90:refresh-layout-kernel:2.1.0")
+    implementation("io.github.scwang90:refresh-header-classics:2.1.0")
     implementation(project(":dyplayer"))
     implementation(project(":A4ijkplayer"))
     implementation(project(":screencast"))

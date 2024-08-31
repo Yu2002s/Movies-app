@@ -21,6 +21,7 @@ import com.dongyu.movies.databinding.FragmentHistoryBinding
 import com.dongyu.movies.event.OnItemClickListener
 import com.dongyu.movies.utils.ioThread
 import com.dongyu.movies.viewmodel.HistoryViewModel
+import com.scwang.smart.refresh.header.ClassicsHeader
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.litepal.LitePal
@@ -49,6 +50,9 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.apply {
+            root.setRefreshHeader(ClassicsHeader(requireContext()))
+        }
         binding.historyRecyclerView.adapter = historyListAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -62,7 +66,10 @@ class HistoryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             historyListAdapter.loadStateFlow.collect {
                 if (it.refresh !is LoadState.Loading) {
-                    binding.root.isRefreshing = false
+                    // binding.root.isRefreshing = false
+                    if (binding.root.isRefreshing) {
+                        binding.root.finishRefresh()
+                    }
                 }
             }
         }

@@ -42,6 +42,7 @@ import com.dongyu.movies.event.OnItemClickListener
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.MainViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.scwang.smart.refresh.header.ClassicsHeader
 import kotlinx.coroutines.launch
 
 class MainFragment : BaseFragment() {
@@ -90,6 +91,9 @@ class MainFragment : BaseFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             mainViewModel.stateFlow.collect { result ->
                 result ?: return@collect
+                /*if (binding.refreshLayout.isRefreshing) {
+                    binding.refreshLayout.finishRefresh()
+                }*/
                 binding.refreshLayout.isRefreshing = false
                 binding.loading.isInvisible = true
                 binding.errorText.isInvisible = true
@@ -116,6 +120,7 @@ class MainFragment : BaseFragment() {
             }
         }
 
+        // binding.refreshLayout.setRefreshHeader(ClassicsHeader(requireContext()))
         binding.refreshLayout.setOnRefreshListener {
             mainViewModel.refresh()
         }
