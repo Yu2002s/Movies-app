@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_header"
     android:orientation="vertical"
+    android:translationZ="11dp"
     android:paddingHorizontal="16dp">
 
     <include

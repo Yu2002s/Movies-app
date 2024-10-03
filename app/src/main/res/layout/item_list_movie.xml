@@ -2,16 +2,17 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/movie_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
     android:paddingHorizontal="8dp"
     android:paddingVertical="4dp">
 
-    <ImageView
+    <com.dongyu.movies.view.RoundImageView
         android:id="@+id/movie_cover"
-        android:layout_width="70dp"
-        android:layout_height="100dp"
+        android:layout_width="90dp"
+        android:layout_height="140dp"
         android:contentDescription="@string/movie_cover"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -26,13 +27,13 @@
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="4dp"
         android:background="@drawable/bg_small_card"
-        android:textSize="10sp"
         android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
         android:textColor="@color/white"
+        android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@id/movie_cover"
         app:layout_constraintEnd_toEndOf="@id/movie_cover"
-        tools:text="@string/app_name"
-        tools:ignore="SmallSp" />
+        tools:ignore="SmallSp"
+        tools:text="@string/app_name" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/cate"
@@ -40,14 +41,14 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginTop="4dp"
-        android:textSize="10sp"
         android:background="@drawable/bg_small_card"
         android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
         android:textColor="@color/white"
+        android:textSize="10sp"
         app:layout_constraintStart_toStartOf="@id/movie_cover"
         app:layout_constraintTop_toTopOf="@id/movie_cover"
-        tools:text="@string/app_name"
-        tools:ignore="SmallSp" />
+        tools:ignore="SmallSp"
+        tools:text="@string/app_name" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/movie_name"
@@ -62,13 +63,22 @@
         tools:text="@string/app_name" />
 
     <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/movie_tag"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/movie_name"
+        app:layout_constraintTop_toBottomOf="@id/movie_name"
+        tools:text="@string/app_name" />
+
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/movie_director"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/movie_name"
-        app:layout_constraintTop_toBottomOf="@id/movie_name"
+        app:layout_constraintTop_toBottomOf="@id/movie_tag"
         tools:text="导演: 钱雁秋" />
 
     <com.google.android.material.textview.MaterialTextView

@@ -2,10 +2,19 @@ package com.dongyu.movies.utils
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import android.view.WindowManager
+import com.bytedance.pangle.transform.ZeusTransformUtils.getResources
 import com.dongyu.movies.MoviesApplication
+import com.dongyu.movies.base.BaseActivity
+import com.dongyu.movies.config.SPConfig
+import com.dongyu.movies.utils.SpUtils.get
 
+/**
+ * dp转像素
+ */
 fun Int.dp2px(context: Context = MoviesApplication.context): Int {
     return (context.resources.displayMetrics.density * this + 0.5).toInt()
 }
@@ -44,4 +53,17 @@ fun getWindowHeight(): Int {
     } else {
         windowManager.defaultDisplay.height
     }
+}
+
+/**
+ * 是否为深色模式
+ */
+val isDarkMode: Boolean get() {
+    val context = MoviesApplication.context
+    val theme = ThemeUtils.currentTheme
+    if (theme != ThemeUtils.THEME_AUTO) {
+        return theme == ThemeUtils.THEME_DARK
+    }
+    val nightModeFlags = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+    return nightModeFlags == Configuration.UI_MODE_NIGHT_YES
 }

@@ -129,8 +129,6 @@ class DLANUtils: BaseScreenCastUtils() {
         }
     }
 
-
-
     override fun getScreenCastType(): Int {
         return TYPE_DLNA
     }
@@ -248,6 +246,10 @@ class DLANUtils: BaseScreenCastUtils() {
         })
     }
 
+    override fun disconnect() {
+        progressHandler.removeMessage()
+    }
+
     override fun stop() {
         progressHandler.removeMessage()
         if (registryListener != null) {
@@ -264,6 +266,29 @@ class DLANUtils: BaseScreenCastUtils() {
             }
         })
 
+    }
+
+    fun resume() {
+        mDLNAPlayer?.play(object : DLNAControlCallback {
+            override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
+
+            }
+
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
+
+            }
+
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
+
+            }
+        })
     }
 
 //    override fun getCurrentPosition() {

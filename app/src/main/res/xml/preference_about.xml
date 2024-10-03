@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference app:layout="@layout/layout_app_info" />
+
+    <PreferenceCategory app:title="关于">
+
+        <Preference
+            app:icon="@drawable/baseline_logo_dev_24"
+            app:summary="冬日暖雨"
+            app:title="作者" />
+
+        <Preference
+            app:icon="@drawable/baseline_gavel_24"
+            app:key="statement"
+            app:title="免责声明" />
+
+        <Preference
+            app:icon="@drawable/baseline_share_24"
+            app:key="share_app"
+            app:summary="喜欢App的话就把他分享给别人吧"
+            app:title="分享App" />
+
+        <Preference
+            app:icon="@drawable/baseline_message_24"
+            app:key="contact"
+            app:title="联系我" />
+
+        <Preference
+            app:icon="@drawable/baseline_group_24"
+            app:key="qq_group"
+            app:summary="加入群聊反馈bug或者建议"
+            app:title="QQ交流反馈群" />
+
+        <Preference
+            app:icon="@drawable/baseline_group_24"
+            app:key="group"
+            app:title="Telegram群组" />
+
+        <Preference
+            app:icon="@drawable/baseline_favorite_24"
+            app:key="donation"
+            app:summary="你的捐赠将是我开发最大的动力"
+            app:title="捐赠" />
+
+        <Preference
+            app:icon="@drawable/baseline_link_24"
+            app:key="home_page"
+            app:title="App主页" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

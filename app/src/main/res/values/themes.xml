@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Movies" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Movies" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!--<item name="colorPrimary">@color/primary</item>
         <item name="colorSecondary">@color/primary</item>-->
@@ -16,7 +16,39 @@
         <item name="android:spinnerDropDownItemStyle">@style/MySpinnerItemStyle</item>
         <item name="dialogCornerRadius">22dp</item>
     </style>
+
+    <!-- App默认主题 -->
     <style name="Theme.Movies" parent="Base.Theme.Movies" />
+
+    <!-- 亮色主题 -->
+    <style name="Theme.Movies.Light" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
+
+        <item name="preferenceTheme">@style/MyPreferenceTheme</item>
+
+        <item name="android:spinnerDropDownItemStyle">@style/MySpinnerItemStyle</item>
+        <item name="dialogCornerRadius">22dp</item>
+    </style>
+
+    <!-- 深色主题 -->
+    <style name="Theme.Movies.Dark" parent="Theme.Material3.DynamicColors.Dark.NoActionBar" >
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
+
+        <item name="preferenceTheme">@style/MyPreferenceTheme</item>
+
+        <item name="android:spinnerDropDownItemStyle">@style/MySpinnerItemStyle</item>
+        <item name="dialogCornerRadius">22dp</item>
+    </style>
 
     <style name="MyPreferenceTheme" parent="PreferenceThemeOverlay">
         <item name="preferenceStyle">@style/MyPreferenceStyle</item>
@@ -31,7 +63,8 @@
     </style>
 
     <style name="MySwitchPreferenceStyle" parent="Preference.SwitchPreferenceCompat.Material">
-        <item name="widgetLayout" tools:ignore="PrivateResource">@layout/preference_widget_switch</item>
+        <item name="widgetLayout" tools:ignore="PrivateResource">@layout/preference_widget_switch
+        </item>
         <item name="iconSpaceReserved">false</item>
     </style>
 
@@ -51,7 +84,9 @@
     </style>
 
     <style name="MyDropDownPreferenceStyle" parent="Preference.DropDown.Material">
-        <item name="widgetLayout" tools:ignore="PrivateResource">@layout/preference_dropdown_material</item>
+        <item name="widgetLayout" tools:ignore="PrivateResource">
+            @layout/preference_dropdown_material
+        </item>
     </style>
 
     <style name="DialogStyle" parent="ThemeOverlay.AppCompat.Dialog">

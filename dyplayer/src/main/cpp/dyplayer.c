@@ -144,6 +144,7 @@ JNIEXPORT jboolean JNICALL Java_com_dongyu_movies_utils_EncryptUtils_init(JNIEnv
     /*if (isInit) {
         return true;
     }*/
+    LOGE("encryptUtils init.");
     jobject application = getApplication(env);
 
     if (application == NULL) {

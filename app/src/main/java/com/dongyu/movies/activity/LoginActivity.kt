@@ -12,8 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.dongyu.movies.R
 import com.dongyu.movies.base.BaseActivity
-import com.dongyu.movies.base.BaseRepository
-import com.dongyu.movies.data.user.LoginFrom
+import com.dongyu.movies.network.Repository
+import com.dongyu.movies.model.user.LoginFrom
 import com.dongyu.movies.databinding.ActivityLoginBinding
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.LoginViewModel
@@ -83,7 +83,7 @@ class LoginActivity : BaseActivity() {
           v.isEnabled = true
           result.onSuccess { token ->
             // 保存token
-            BaseRepository.saveToken(token)
+            Repository.saveToken(token)
             "登录成功".showToast()
             Handler(Looper.getMainLooper()).postDelayed({
               setResult(RESULT_OK)

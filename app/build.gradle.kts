@@ -1,19 +1,16 @@
-import com.android.build.api.dsl.Packaging
-import com.github.megatronking.stringfog.plugin.StringFogExtension
-import org.jetbrains.kotlin.cli.jvm.main
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
-import org.jetbrains.kotlin.gradle.targets.js.npm.includedRange
+// import com.github.megatronking.stringfog.plugin.StringFogExtension
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("stringfog")
+    // id("stringfog")
     id("com.google.devtools.ksp")
 }
 
-apply(plugin = "stringfog")
-
 android {
+    lint {
+        abortOnError = false
+    }
     signingConfigs {
         getByName("debug") {
             storeFile = file("D:\\jdy2002\\appkey\\jdy.jks")
@@ -41,8 +38,8 @@ android {
         applicationId = "com.dongyu.movies"
         minSdk = 24
         targetSdk = 34
-        versionCode = 18
-        versionName = "1.0.81"
+        versionCode = 27
+        versionName = "1.98"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
@@ -56,23 +53,13 @@ android {
     }
 
     buildTypes {
-        debug {
-            buildConfigField("String", "API_HOST", "\"http://192.168.1.18\"")
-        }
 
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+             isMinifyEnabled = true
+             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
-            buildConfigField("String", "API_HOST", "\"https://jdynb.xyz\"")
-        }
-    }
-
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDirs("libs")
         }
     }
 
@@ -80,22 +67,21 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    buildFeatures {
-        viewBinding {
-            enable = true
-        }
-        buildConfig = true
-        viewBinding = true
+
+    viewBinding {
+        enable = true
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     packaging {
         resources.excludes.add("META-INF/beans.xml")
     }
 }
 
-configure<StringFogExtension> {
+/*configure<StringFogExtension> {
     // 必要：加解密库的实现类路径，需和上面配置的加解密算法库一致。
     implementation = "com.github.megatronking.stringfog.xor.StringFogImpl"
     // 可选：加密开关，默认开启。
@@ -105,36 +91,39 @@ configure<StringFogExtension> {
     kg = com.github.megatronking.stringfog.plugin.kg.RandomKeyGenerator()
     // base64或者bytes
     mode = com.github.megatronking.stringfog.plugin.StringFogMode.bytes
-}
+}*/
 
 dependencies {
     implementation(fileTree("libs"))
-    implementation("androidx.activity:activity-ktx:1.8.2")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.fragment:fragment-ktx:1.8.3")
     implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.0")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.paging:paging-runtime-ktx:3.2.1")
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
     implementation("org.litepal.guolindev:core:3.2.3")
-    implementation("com.alibaba:fastjson:1.1.34")
+    // https://mvnrepository.com/artifact/com.alibaba/fastjson
+    implementation("com.alibaba:fastjson:1.2.83")
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     implementation("org.jsoup:jsoup:1.17.2")
     // https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("androidx.annotation:annotation:1.6.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("com.github.megatronking.stringfog:xor:5.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("androidx.annotation:annotation:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5")
+    // implementation("com.github.megatronking.stringfog:xor:5.0.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     ksp("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
     implementation("com.github.ctiao:DanmakuFlameMaster:0.9.25")
     implementation("com.github.ctiao:ndkbitmap-armv7a:0.9.21")
     implementation("com.github.ctiao:ndkbitmap-x86:0.9.21")
-    implementation("io.github.scwang90:refresh-layout-kernel:2.1.0")
+    implementation("com.github.liangjingkanji:BRV:1.6.0")
+    implementation("io.github.youth5201314:banner:2.2.3")
     implementation("io.github.scwang90:refresh-header-classics:2.1.0")
     implementation(project(":dyplayer"))
     implementation(project(":A4ijkplayer"))

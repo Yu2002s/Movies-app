@@ -1,9 +1,12 @@
 package com.dongyu.movies.utils;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Md5Utils {
 
@@ -31,5 +34,23 @@ public class Md5Utils {
         }
         BigInteger bigInt = new BigInteger(1, digest.digest());
         return bigInt.toString(radix);
+    }
+
+    @Nullable
+    public static String md5Hex(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : messageDigest) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            // 返回32位hex格式hash码
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            return null;
+        }
     }
 }

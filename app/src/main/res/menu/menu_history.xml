@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/edit"
+        android:icon="@drawable/baseline_mode_edit_24"
+        android:title="@string/edit"
+        app:showAsAction="always" />
+
+    <item
+        android:visible="false"
+        android:id="@+id/selectAll"
+        android:icon="@drawable/baseline_select_all_24"
+        android:title="@string/select_all"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:visible="false"
+        android:id="@+id/deselect"
+        android:icon="@drawable/baseline_deselect_24"
+        android:title="@string/deselect"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:visible="false"
+        android:id="@+id/delete"
+        android:icon="@drawable/baseline_delete_outline_24"
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
+</menu>

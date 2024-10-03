@@ -246,10 +246,13 @@
 ##---------------End: proguard configuration for Gson  ----------
 
 # 保留pojo实体类
--keep class com.dongyu.movies.data.**{*;}
+-keep class com.dongyu.movies.model.**{*;}
 
 # 保留接口
 -keep class com.dongyu.movies.api.**
+
+# viewbinding不进行混淆
+-keep class com.dongyu.movies.databinding.**{*;}
 
 # paging 分页
 # -dontwarn android.arch.paging.DataSource

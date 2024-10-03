@@ -1,6 +1,7 @@
 package com.dongyu.movies.utils
 
 import android.content.Intent
+import android.os.Parcelable
 import android.widget.Toast
 import com.dongyu.movies.MoviesApplication
 
@@ -13,6 +14,7 @@ inline fun <reified T> startActivity(vararg args: Pair<String, Any>) {
         is String -> putExtra(it.first, second)
         is Int -> putExtra(it.first, second)
         is Float -> putExtra(it.first, second)
+        is Parcelable -> putExtra(it.first, second)
       }
     }
   })
@@ -35,4 +37,12 @@ fun formatBytes(bytes: Long): String {
   }
 
   return "%.2f %s".format(currentBytes, units[unitIndex])
+}
+
+fun String.isUrl(): Boolean {
+  if (this.isEmpty()) {
+    return false
+  }
+  val url = this.trim()
+  return url.matches("^(http|https)://.+".toRegex())
 }

@@ -66,5 +66,15 @@ class SPConfig {
          * 全屏底部的小进度条
          */
         const val PLAYER_SMALL_PROGRESS = "small_progress"
+
+        /**
+         * App主题样式
+         */
+        const val APP_THEME = "theme"
+
+        /**
+         * 我的页面封面地址
+         */
+        const val MINE_COVER = "mine_cover"
     }
 }

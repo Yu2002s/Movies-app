@@ -5,6 +5,8 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:padding="10dp"
+    android:foreground="?attr/selectableItemBackground"
+    android:id="@+id/search_item"
     android:layout_height="wrap_content">
 
     <TextView
@@ -12,7 +14,6 @@
         android:layout_weight="1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:foreground="?attr/selectableItemBackground"
         android:textSize="19sp">
 
     </TextView>

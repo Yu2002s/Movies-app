@@ -17,7 +17,7 @@
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
         tools:text="周排行" />
 
-    <com.dongyu.movies.view.pager.FitScrollRecyclerView
+    <com.dongyu.movies.view.fix.FitScrollRecyclerView
         android:id="@+id/rank_list_rv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

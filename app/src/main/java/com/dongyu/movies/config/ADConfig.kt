@@ -10,7 +10,7 @@ class ADConfig {
         /**
          * 广告唯一ID标识
          */
-        const val APP_ID = "519692723805"
+        const val APP_ID = "407220947786"
 
         /**
          * OA ID
@@ -20,12 +20,14 @@ class ADConfig {
         /**
          * 开屏广告位id
          */
-        const val SPLASH_ID = "15000955"
+        const val SPLASH_ID = "15031614"
 
         /**
          * banner广告id
          */
-        const val BANNER_ID = "15000958"
+        const val BANNER_ID = "15031616"
+
+        // 信息流：15031615
     }
 
 }

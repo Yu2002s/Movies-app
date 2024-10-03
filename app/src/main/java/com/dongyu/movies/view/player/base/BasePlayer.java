@@ -42,7 +42,6 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
-import com.dongyu.movies.BuildConfig;
 import com.dongyu.movies.MoviesApplication;
 import com.dongyu.movies.R;
 import com.dongyu.movies.databinding.LayoutDyPlayerBinding;
@@ -257,6 +256,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
              int windowWidth = DisplayUtilsKt.getWindowWidth(activity);
              newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(windowWidth, MeasureSpec.EXACTLY);
         }
+        Log.d(TAG, "playerHeight: " + playerHeight);
         super.onMeasure(newWidthMeasureSpec, newHeightMeasureSpec);
     }
 
@@ -615,7 +615,15 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         return playState == STATE_ERROR;
     }
 
+    public void playError() {
+        playState = STATE_ERROR;
+        stop();
+    }
+
     public boolean isCompletion() {
+        if (getEndProgress() == 0) {
+            return false;
+        }
         if (ijkMediaPlayer == null) {
             return true;
         }
@@ -901,6 +909,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     public void showLoading() {
         binding.progressBar.setVisibility(VISIBLE);
         binding.tvNetworkSpeed.setVisibility(VISIBLE);
+        binding.loadingTip.setVisibility(VISIBLE);
 
         if (networkSpeedRunnable == null) {
             networkSpeedRunnable = new Runnable() {
@@ -918,12 +927,14 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
 
         currentTotalRxBytes = getNowNetworkSpeed();
         binding.tvNetworkSpeed.setText(null);
+        mHandler.removeCallbacks(networkSpeedRunnable);
         mHandler.postDelayed(networkSpeedRunnable, 1000);
     }
 
     public void hideLoading() {
         binding.progressBar.setVisibility(INVISIBLE);
         binding.tvNetworkSpeed.setVisibility(INVISIBLE);
+        binding.loadingTip.setVisibility(INVISIBLE);
         if (networkSpeedRunnable != null) {
             mHandler.removeCallbacks(networkSpeedRunnable);
             networkSpeedRunnable = null;
@@ -992,7 +1003,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     private void startProgressTimer() {
-        if (progressRunnable != null) {
+        if (progressRunnable != null || getEndProgress() == 0) {
             Log.w(TAG, "startProgressTimer: runnable is not null");
             return;
         }
@@ -1106,7 +1117,8 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     private boolean createIjkPlayer(String url) {
         try {
             ijkMediaPlayer = new IjkMediaPlayer();
-            ijkMediaPlayer.setLogEnabled(BuildConfig.DEBUG);
+            ijkMediaPlayer.setLogEnabled(false);
+            // ijkMediaPlayer.setLogEnabled(BuildConfig.DEBUG);
             ijkMediaPlayer.setDataSource(url);
             // 循环播放关闭
             ijkMediaPlayer.setLooping(false);
@@ -1140,14 +1152,19 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         ijkMediaPlayer.setOnPreparedListener(iMediaPlayer -> {
             setEndProgress(ijkMediaPlayer.getDuration());
             // 视频已准备播放
-            iMediaPlayer.start();
+            // iMediaPlayer.start();
             hideLoading();
             // 开始定时任务监听进度信息
             startProgressTimer();
             onPlayStateChanged(STATE_PLAYING);
             onVideoPrepared(this);
-            setSurfaceView();
+            if (getCurrentProgress() == 0) {
+                iMediaPlayer.start();
+            }
+            // setSurfaceView();
         });
+
+        ijkMediaPlayer.setOnVideoSizeChangedListener((mp, width, height, sar_num, sar_den) -> setSurfaceView());
 
         ijkMediaPlayer.setOnInfoListener((iMediaPlayer, what, i1) -> {
             // Log.i(TAG, "OnInfoListener: " + what + " , i1: " + i1);
@@ -1194,16 +1211,13 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             Log.i(TAG, "Video play completion");
         });
 
-        ijkMediaPlayer.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
-                hideLoading();
-                onPlayStateChanged(STATE_ERROR);
-                stopProgressTimer();
-                // 显示错误
-                Log.e(TAG, "video play error" + " param1:" + i + " param2: " + i1);
-                return false;
-            }
+        ijkMediaPlayer.setOnErrorListener((iMediaPlayer, i, i1) -> {
+            hideLoading();
+            onPlayStateChanged(STATE_ERROR);
+            stopProgressTimer();
+            // 显示错误
+            Log.e(TAG, "video play error" + " param1:" + i + " param2: " + i1);
+            return false;
         });
     }
 
@@ -1212,6 +1226,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     public void setPlayerSize(FrameLayout.LayoutParams layoutParams, @Px int width, @Px int height) {
+
         int videoHeight;
         int videoWidth;
 
@@ -1221,9 +1236,15 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         if (ijkMediaPlayer != null) {
             videoHeight = ijkMediaPlayer.getVideoHeight();
             videoWidth = ijkMediaPlayer.getVideoWidth();
+            Log.d(TAG, "videoHeight: " + videoHeight + ", videoWidth: " + videoWidth);
         } else {
             videoHeight = windowHeight;
             videoWidth = windowWidth;
+        }
+
+        if (videoHeight == 0 || videoWidth == 0) {
+            videoWidth = windowWidth;
+            videoHeight = playerHeight;
         }
 
         float ww = windowWidth / (float) videoWidth;
@@ -1231,8 +1252,16 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
 
         float scale = Math.min(ww, wh);
 
-        layoutParams.width = (int) (videoWidth * scale);
-        layoutParams.height = (int) (videoHeight * scale);
+        int surfaceWidth = (int) (videoWidth * scale);
+        int surfaceHeight = (int) (videoHeight * scale);
+
+        if (surfaceWidth != layoutParams.width) {
+            layoutParams.width = surfaceWidth;
+        }
+
+        if (surfaceHeight != layoutParams.height) {
+            layoutParams.height = surfaceHeight;
+        }
 
         // surfaceView.getHolder().setFixedSize(layoutParams.width, layoutParams.height);
     }

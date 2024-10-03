@@ -43,9 +43,14 @@ object SpUtils {
         val res: Comparable<*>? = when (T::class) {
             String::class -> getString(key, defaultValue as? String)
             Int::class -> {
-                getInt(key, (defaultValue as? Int) ?: 0)
+                val value = getInt(key, (defaultValue as? Int) ?: 0)
+                // 对于Int类型进行空处理
+                if (defaultValue == null && value == 0)  null else value
             }
-            Long::class -> getLong(key, (defaultValue as? Long) ?: 0)
+            Long::class -> {
+                val value = getLong(key, (defaultValue as? Long) ?: 0)
+                if (defaultValue == null && value == 0L) null else value
+            }
             Float::class -> getFloat(key, (defaultValue as? Float) ?: 0f)
             Boolean::class -> getBoolean(key, (defaultValue as? Boolean) ?: false)
             else -> null
@@ -78,7 +83,7 @@ object SpUtils {
             is Long -> putLong(key, value)
             is Float -> putFloat(key, value)
             is Boolean -> putBoolean(key, value)
-            else -> throw IllegalStateException()
+            // else -> throw IllegalStateException()
         }
        apply()
     }
@@ -89,6 +94,10 @@ object SpUtils {
 
     inline fun <reified T> String.get(default: T? = null): T? {
         return DEFAULT_KEY.get(this, default)
+    }
+
+    inline fun <reified T> String.getRequired(default: T): T {
+        return DEFAULT_KEY.get(this, default)!!
     }
 
     fun String.remove(key: String) = getSp(this).edit().remove(key).apply()

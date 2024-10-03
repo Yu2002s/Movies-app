@@ -1,8 +1,6 @@
 package com.dongyu.movies.base
 
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -11,12 +9,28 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
+import com.dongyu.movies.event.ThemeObserver
+import com.dongyu.movies.utils.ThemeUtils
 
-open class BaseActivity: AppCompatActivity() {
+open class BaseActivity: AppCompatActivity(), ThemeObserver {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        initTheme()
+        initWindow()
+    }
+
+    private fun initTheme() {
+        ThemeUtils.setTheme(this)
+        ThemeUtils.addObserver(this)
+    }
+
+    fun setAppTheme(theme: String) {
+        ThemeUtils.setTheme(this, theme)
+    }
+
+    private fun initWindow() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { v, insets ->
             ViewCompat.setOnApplyWindowInsetsListener(v, null)
@@ -34,6 +48,14 @@ open class BaseActivity: AppCompatActivity() {
         }
     }
 
+    override fun onThemeChanged(theme: String) {
+        ThemeUtils.setTheme(this)
+        recreate()
+    }
+
+    /**
+     * 对返回事件进行统一处理
+     */
     override fun setSupportActionBar(toolbar: Toolbar?) {
         super.setSupportActionBar(toolbar)
         toolbar?.setNavigationOnClickListener {
@@ -55,6 +77,9 @@ open class BaseActivity: AppCompatActivity() {
         return null
     }
 
+    /**
+     * 获取当前页面的第一个RecyclerView
+     */
     private fun getRecyclerView(view: ViewGroup): RecyclerView? {
         for (i in 0 until view.childCount) {
             val child = view.getChildAt(i)
@@ -63,6 +88,11 @@ open class BaseActivity: AppCompatActivity() {
             }
         }
         return null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ThemeUtils.removeObserver(this)
     }
 
 }

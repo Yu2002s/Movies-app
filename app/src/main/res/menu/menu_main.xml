@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
+    <!--<item
         android:id="@+id/rank"
         app:showAsAction="always"
         android:icon="@drawable/baseline_format_list_numbered_24"
-        android:title="排行榜" />
+        android:title="排行榜" />-->
 
     <item android:id="@+id/route"
         app:showAsAction="ifRoom"

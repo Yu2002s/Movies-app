@@ -13,7 +13,7 @@
     <string name="nav_download">下载</string>
 
     <!-- 播放器相关 -->
-    <string name="video_error">播放失败了，请尝试刷新或检查网络状态</string>
+    <string name="video_error">播放失败了，请尝试以下操作或检查网络状态</string>
     <string name="refresh">刷新</string>
     <string name="play_toast">请勿相信视频内的任何广告</string>
 
@@ -52,4 +52,16 @@
     <string name="restart">重新启动</string>
     <string name="feedback">反馈</string>
     <string name="like">收藏</string>
+
+    <!-- 界面状态 -->
+    <string name="empty">空空如也</string>
+    <string name="error">加载失败，可能网络问题或服务器维护中，请尝试点击刷新</string>
+    <string name="reload">重载</string>
+    <string name="switch_source">换源</string>
+    <string name="nav_mine">我的</string>
+    <string name="edit">编辑</string>
+    <string name="select_all">全选</string>
+    <string name="deselect">取消选择</string>
+    <string name="delete">删除</string>
+    <string name="nav_live">直播</string>
 </resources>

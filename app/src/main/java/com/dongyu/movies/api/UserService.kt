@@ -1,8 +1,7 @@
 package com.dongyu.movies.api
 
-import com.dongyu.movies.data.base.BaseResponse
-import com.dongyu.movies.data.user.LoginFrom
-import com.dongyu.movies.data.user.User
+import com.dongyu.movies.model.base.BaseResponse
+import com.dongyu.movies.model.user.User
 import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded

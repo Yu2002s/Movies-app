@@ -12,6 +12,7 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +32,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.dongyu.movies.event.OnVideoErrorBtnClickListener;
+import com.dongyu.movies.utils.UtilsKt;
 import com.dongyu.movies.utils.player.BiliDanmukuParser;
 import com.dongyu.movies.utils.player.MyDanmakuLoader;
 import com.dongyu.movies.R;
@@ -116,6 +119,8 @@ public class DongYuPlayer extends BasePlayer {
 
     private PlayerStateListener playerStateListener;
 
+    private OnVideoErrorBtnClickListener errorBtnClickListener;
+
     private DanmakuView mDanmakuView;
 
     private DanmakuContext mDanmakuContext;
@@ -128,6 +133,10 @@ public class DongYuPlayer extends BasePlayer {
 
     public void setPlayerStateListener(PlayerStateListener playerStateListener) {
         this.playerStateListener = playerStateListener;
+    }
+
+    public void setErrorBtnClickListener(OnVideoErrorBtnClickListener errorBtnClickListener) {
+        this.errorBtnClickListener = errorBtnClickListener;
     }
 
     public DongYuPlayer(@NonNull Context context) {
@@ -264,8 +273,7 @@ public class DongYuPlayer extends BasePlayer {
         mDanmakuView.enableDanmakuDrawingCache(true);
 
         Boolean isShowDanmaku = SpUtils.INSTANCE.getOrDefault(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, true);
-        bottomBinding.danmakuVisible.setImageResource(Boolean.TRUE.equals(isShowDanmaku)
-                ? R.drawable.baseline_visibility_24 : R.drawable.baseline_visibility_off_24);
+        bottomBinding.danmakuVisible.setText(Boolean.TRUE.equals(isShowDanmaku) ? "弹幕开" : "弹幕关");
     }
 
     public DongYuPlayer setDanmakus(List<String> danmakus) {
@@ -281,12 +289,12 @@ public class DongYuPlayer extends BasePlayer {
         startDanmaku(mDanmakuUrlList.get(0));
     }
 
-    public void startDanmaku(int selection) {
-        Log.d(TAG, "startDanmaku, selection: " + selection);
-        if (selection <= 0 || selection > mDanmakuUrlList.size()) {
+    public void startDanmaku(int position) {
+        Log.d(TAG, "startDanmaku, position: " + position);
+        if (position < 0 || position >= mDanmakuUrlList.size()) {
             return;
         }
-        startDanmaku(mDanmakuUrlList.get(selection - 1));
+        startDanmaku(mDanmakuUrlList.get(position));
     }
 
     public boolean isShowDanmaku() {
@@ -298,13 +306,16 @@ public class DongYuPlayer extends BasePlayer {
     }
 
     public void showDanmaku() {
+        if (mDanmakuUrlList.isEmpty()) {
+            return;
+        }
         if (!isShowDanmaku() && mDanmakuView.isPrepared()) {
             mDanmakuView.show();
             checkDanmakuCurrentTime();
         }
 
         SpUtils.INSTANCE.put(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, true);
-        bottomBinding.danmakuVisible.setImageResource(R.drawable.baseline_visibility_24);
+        bottomBinding.danmakuVisible.setText("弹幕开");
     }
 
     public void hideDanmaku() {
@@ -312,7 +323,7 @@ public class DongYuPlayer extends BasePlayer {
             mDanmakuView.hide();
         }
         SpUtils.INSTANCE.put(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, false);
-        bottomBinding.danmakuVisible.setImageResource(R.drawable.baseline_visibility_off_24);
+        bottomBinding.danmakuVisible.setText("弹幕关");
     }
 
     public void startDanmaku(String url) {
@@ -394,10 +405,18 @@ public class DongYuPlayer extends BasePlayer {
             if (errorBinding == null) {
                 errorBinding = LayoutVideoErrorBinding
                         .inflate(LayoutInflater.from(getContext()), maskLayout, false);
-                errorBinding.btnRefresh.setOnClickListener(v -> {
-                    refresh();
-                    hideMaskView();
-                });
+                if (errorBtnClickListener == null) {
+                    errorBinding.btnRefresh.setOnClickListener(v -> {
+                        refresh();
+                        hideMaskView();
+                    });
+                } else {
+                    errorBinding.btnReload.setVisibility(VISIBLE);
+                    errorBinding.btnSwitchSource.setVisibility(VISIBLE);
+                    errorBinding.btnReload.setOnClickListener(v -> errorBtnClickListener.onReloadClick());
+                    errorBinding.btnSwitchSource.setOnClickListener(v -> errorBtnClickListener.onSwitchSourceClick());
+                    errorBinding.btnRefresh.setOnClickListener(v -> errorBtnClickListener.onRefreshClick());
+                }
             }
             return errorBinding.getRoot();
         }
@@ -497,20 +516,14 @@ public class DongYuPlayer extends BasePlayer {
             });
         });
 
-        bottomBinding.scale.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu menu = createVideoScaleMenu(v);
-                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        VideoScaleMode mode = VideoScaleMode.getModeForTitle((String) item.getTitle());
-                        setScaleMode(mode);
-                        return true;
-                    }
-                });
-                menu.show();
-            }
+        bottomBinding.scale.setOnClickListener(v -> {
+            PopupMenu menu = createVideoScaleMenu(v);
+            menu.setOnMenuItemClickListener(item -> {
+                VideoScaleMode mode = VideoScaleMode.getModeForTitle((String) item.getTitle());
+                setScaleMode(mode);
+                return true;
+            });
+            menu.show();
         });
 
         DanmakuTouchHelper mTouchHelper = null;
@@ -529,33 +542,35 @@ public class DongYuPlayer extends BasePlayer {
         AtomicBoolean canTouch = new AtomicBoolean(true);
         mDanmakuView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                if (!canTouch(event.getX(), event.getY())) {
-                    canTouch.set(false);
-                } else {
-                    canTouch.set(true);
-                }
+                canTouch.set(canTouch(event.getX(), event.getY()));
             }
             if (!canTouch.get()) {
                 return false;
             }
-            boolean isEvent = onTouchEvent(event);
-            boolean isEventConsumed = false;
+            onTouchEvent(event);
+            // boolean isEventConsumed = false;
             if (finalMTouchHelper != null) {
-                isEventConsumed = finalMTouchHelper.onTouchEvent(event);
+                finalMTouchHelper.onTouchEvent(event);
             }
             return true;
         });
 
-        headerBinding.videoProjection.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                screenProjectionDialog = new ScreenProjectionDialog();
-                Bundle bundle = new Bundle();
-                bundle.putString("url", getIjkMediaPlayer().getDataSource());
-                bundle.putString("title", getTitle().toString());
-                screenProjectionDialog.setArguments(bundle);
-                screenProjectionDialog.show(getActivity().getSupportFragmentManager(), "screenProjection");
+        headerBinding.videoProjection.setOnClickListener(v -> {
+            String url = getIjkMediaPlayer().getDataSource();
+            if (TextUtils.isEmpty(url)) {
+                UtilsKt.showToast("当前视频未加载成功", 2000);
+                return;
             }
+            if (screenProjectionDialog == null) {
+                screenProjectionDialog = new ScreenProjectionDialog(v.getContext())
+                        .setTitle(getTitle().toString())
+                        .setUrl(url)
+                        .setDuration(getEndProgress());
+                // screenProjectionDialog.setNextSelectionClickListener(v1 -> bottomBinding.playNext.callOnClick());
+            }
+            // 暂停手机上的视频播放
+            pause();
+            screenProjectionDialog.show();
         });
     }
 
@@ -978,6 +993,11 @@ public class DongYuPlayer extends BasePlayer {
             seekTo();
         }
         hideMessage();
+    }
+
+    @Override
+    public boolean play(String url) {
+        return super.play(url);
     }
 
     @Override

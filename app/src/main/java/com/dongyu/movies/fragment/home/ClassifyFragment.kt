@@ -1,34 +1,34 @@
 package com.dongyu.movies.fragment.home
 
 import android.annotation.SuppressLint
+import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.paging.LoadState
-import com.dongyu.movies.activity.MainActivity
+import androidx.recyclerview.widget.RecyclerView
+import com.dongyu.movies.R
 import com.dongyu.movies.activity.VideoActivity
-import com.dongyu.movies.adapter.FilterAdapter
-import com.dongyu.movies.adapter.MovieGridPagingAdapter
 import com.dongyu.movies.base.BaseFragment
-import com.dongyu.movies.data.home.ClassifyQueryParam
-import com.dongyu.movies.data.home.FilterData
-import com.dongyu.movies.data.movie.PlayParam
 import com.dongyu.movies.databinding.FragmentClassifyBinding
-import com.dongyu.movies.dialog.RouteDialog
-import com.dongyu.movies.event.OnCardItemClickListener
-import com.dongyu.movies.event.OnItemClickListener
+import com.dongyu.movies.databinding.ItemFilterBinding
+import com.dongyu.movies.databinding.ItemListFilterBinding
+import com.dongyu.movies.dialog.MovieSourceDialog
+import com.dongyu.movies.model.home.CategoryData
+import com.dongyu.movies.model.home.ClassifyQueryParam
+import com.dongyu.movies.model.home.FilterData
+import com.dongyu.movies.model.movie.loadListCardMovies
+import com.dongyu.movies.model.parser.ParseParam
+import com.dongyu.movies.network.MovieRepository
+import com.dongyu.movies.network.Repository
+import com.dongyu.movies.utils.loadImg
 import com.dongyu.movies.utils.showToast
-import com.dongyu.movies.viewmodel.ClassifyViewModel
-import com.dongyu.movies.viewmodel.ClassifyViewModelFactory
-import kotlinx.coroutines.flow.collectLatest
+import com.drake.brv.utils.models
+import com.drake.brv.utils.setup
 import kotlinx.coroutines.launch
 
 class ClassifyFragment : BaseFragment() {
@@ -38,21 +38,12 @@ class ClassifyFragment : BaseFragment() {
         private const val TAG = "ClassifyFragment"
     }
 
-    /**
-     * 生命周期为父fragment
-     */
-    private val viewModel by viewModels<ClassifyViewModel> {
-        ClassifyViewModelFactory(requireArguments().getInt(ID, 1))
+    private val classifyQueryParam by lazy {
+        ClassifyQueryParam(cateId = requireArguments().getString(ID, "1"))
     }
 
     private var _binding: FragmentClassifyBinding? = null
     private val binding get() = _binding!!
-
-    private val moviesGridAdapter = MovieGridPagingAdapter()
-
-    private val filterList = mutableListOf<FilterData>()
-
-    private val filterAdapter = FilterAdapter(filterList)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,103 +58,118 @@ class ClassifyFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.filterRecyclerView.adapter = filterAdapter
-        binding.movieRecyclerView.adapter = moviesGridAdapter
+        val filterRv = binding.filterRv
+        filterRv.setup {
+            /**
+             * 过滤列表
+             */
+            addType<FilterData>(R.layout.item_filter)
 
-        moviesGridAdapter.onItemClickListener = object : OnItemClickListener {
-            override fun onItemClick(view: View, position: Int) {
-                val movieItem = moviesGridAdapter.peek(position) ?: return
-                VideoActivity.play(PlayParam(viewModel.movieId, movieItem.id, movieItem.routeId))
+            onCreate {
+                getBinding<ItemFilterBinding>().filterList.loadFilterList { item, index ->
+                    val paramClass = ClassifyQueryParam::class.java
+                    val fields = paramClass.declaredFields
+
+                    val field = fields.first {
+                        it.name == item.groupId
+                    }
+
+                    field.isAccessible = true
+                    field.set(classifyQueryParam, if (index == 0 && field.name != "cateId") null else item.id)
+                    binding.refreshLayout.showLoading()
+                }
+            }
+
+            onBind {
+                val model = getModel<FilterData>()
+                getBinding<ItemFilterBinding>().apply {
+                    filterName.text = model.name
+                    filterList.models = model.items
+                }
             }
         }
 
-        filterAdapter.onCardItemClickListener = object : OnCardItemClickListener {
-            override fun onCardItemClick(
-                outerView: View,
-                innerView: View,
-                outerPosition: Int,
-                innerPosition: Int
-            ) {
-                if (binding.refreshLayout.isRefreshing) {
-                    return "正在刷新，请稍后再操作".showToast()
+        binding.rv.loadImg().loadListCardMovies {
+            val movieId = Repository.currentMovieId ?: return@loadListCardMovies
+            VideoActivity.play(ParseParam(movieId = movieId, detailId = it.id, tvName = it.tvName))
+        }
+
+        binding.refreshLayout.onRefresh {
+            viewLifecycleOwner.lifecycleScope.launch {
+                classifyQueryParam.page = index
+                MovieRepository.getClassify(classifyQueryParam).collect {
+                    updateView(it)
                 }
-                val filterData = filterList[outerPosition]
-                val item = filterData.items[innerPosition]
-                filterData.items.forEachIndexed { index, data ->
-                    if (data.isSelect) {
-                        data.isSelect = false
-                        filterAdapter.notifyItemChanged(outerPosition, index)
+            }
+        }.onError {
+            showRouteDialog()
+        }
+    }
+
+    private fun updateView(result: Result<CategoryData>) {
+        val refreshLayout = binding.refreshLayout
+        result.onSuccess { data ->
+            // 如果是刷新操作
+            val cateId = requireArguments().getString(ID, "1")
+            if (classifyQueryParam.cateId ==  cateId && refreshLayout.index == 1 && data.filterData != null) {
+                data.filterData.forEach {
+                    it.items.getOrNull(0)?.isSelect = true
+                    it.items.forEach { item -> item.groupId = it.id }
+                }
+                binding.filterRv.models = data.filterData
+            }
+            refreshLayout.addData(data.categoryData.result) {
+                refreshLayout.index < data.categoryData.lastPage
+            }
+        }.onFailure {
+            Log.e(TAG, it.toString())
+            refreshLayout.showError(it.message)
+        }
+    }
+
+    override fun isFirstResume() {
+        super.isFirstResume()
+        binding.refreshLayout.showLoading()
+    }
+
+    private fun RecyclerView.loadFilterList(block: (item: FilterData.Item, index: Int) -> Unit) {
+        setup {
+            addType<FilterData.Item>(R.layout.item_list_filter)
+            R.id.tv_filter.onClick {
+                val item = getModel<FilterData.Item>()
+                mutable.forEachIndexed { index, i ->
+                    i as FilterData.Item
+                    if (i.isSelect && index != modelPosition) {
+                        i.isSelect = false
+                        notifyItemChanged(index)
+                    } else if (index == modelPosition) {
+                        i.isSelect = true
+                        notifyItemChanged(index)
                     }
                 }
-                item.isSelect = true
-                innerView.isSelected = true
-
-                val param = viewModel.getParam()
-                val paramClass = ClassifyQueryParam::class.java
-                val fields = paramClass.declaredFields
-
-                val field = fields.first {
-                    it.name == filterData.id
-                }
-                field.isAccessible = true
-                field.set(param, if (innerPosition == 0) null else item.id ?: item.value)
-                moviesGridAdapter.refresh()
+                block(item, modelPosition)
             }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.classifyState.collectLatest {
-                    moviesGridAdapter.submitData(it)
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                moviesGridAdapter.loadStateFlow.collect {
-                    val loadingFinished = it.refresh !is LoadState.Loading
-                    binding.refreshLayout.isRefreshing = !loadingFinished
-                    binding.loading.isInvisible = loadingFinished
-
-                    if (it.refresh is LoadState.Error) {
-                        showRouteDialog()
+            onBind {
+                val item = getModel<FilterData.Item>()
+                getBinding<ItemListFilterBinding>().apply {
+                    (itemView as TextView).apply {
+                        text = item.name
+                        setTypeface(null, if (item.isSelect) Typeface.BOLD else Typeface.NORMAL)
                     }
+                    itemView.isSelected = item.isSelect
                 }
             }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.filterState.collect {
-                    filterList.clear()
-                    filterList.addAll(it)
-                    filterAdapter.notifyDataSetChanged()
-                }
-            }
-        }
-
-        binding.btnBackTop.setOnClickListener {
-            binding.filterRecyclerView.isVisible = !binding.filterRecyclerView.isVisible
-            binding.movieRecyclerView.scrollToPosition(0)
-        }
-
-        binding.refreshLayout.setOnRefreshListener {
-            moviesGridAdapter.refresh()
         }
     }
 
     private fun showRouteDialog() {
-        RouteDialog(requireActivity() as AppCompatActivity) {
+        MovieSourceDialog(requireActivity() as AppCompatActivity) {
             "正在刷新，请稍后".showToast()
-            moviesGridAdapter.refresh()
+            binding.refreshLayout.showLoading()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        (requireActivity() as MainActivity).showAppBar()
-    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -1,14 +1,16 @@
 package com.dongyu.movies.api
 
-import com.dongyu.movies.data.movie.MovieResponse
-import com.dongyu.movies.data.base.BaseResponse
-import com.dongyu.movies.data.movie.IQiYiVideoInfo
-import com.dongyu.movies.data.movie.MovieDetail
-import com.dongyu.movies.data.movie.Video
-import com.dongyu.movies.data.search.IQiYiSearchResult
-import org.jsoup.Connection.Base
+import com.dongyu.movies.model.movie.MovieResponse
+import com.dongyu.movies.model.base.BaseResponse
+import com.dongyu.movies.model.home.CategoryData
+import com.dongyu.movies.model.home.ClassifyQueryParam
+import com.dongyu.movies.model.movie.IQiYiVideoInfo
+import com.dongyu.movies.model.search.IQiYiSearchResult
+import com.dongyu.movies.model.search.Suggest
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
@@ -22,25 +24,8 @@ interface MovieService {
     @GET("/movies")
     fun getMovieList(): Call<BaseResponse<List<MovieResponse.Movie>>>
 
-    /**
-     * 获取某个影视详情信息
-     * @param id 影视id
-     */
     @GET("/movies/{id}")
-    fun getMovieDetail(
-        @Path("id") id: Int,
-        @Query("detailId") detailId: String,
-        @Query("routeId") routeId: Int,
-        @Query("selection") selection: Int
-    ): Call<BaseResponse<MovieDetail>>
-
-    @GET("/movies/video/{id}")
-    fun getMovieVideo(
-        @Path("id") id: Int,
-        @Query("detailId") detailId: String,
-        @Query("routeId") routeId: Int,
-        @Query("selection") selection: Int
-    ): Call<BaseResponse<Video>>
+    suspend fun getMovieById(@Path("id") id: Int): BaseResponse<MovieResponse.Movie>
 
     @GET
     fun getMovieDanMuKu(
@@ -53,4 +38,19 @@ interface MovieService {
         @Url url: String,
         @Query("id") id: String,
     ): Call<IQiYiVideoInfo>
+
+    /**
+     * 获取主页的数据
+     */
+    @GET("/movies/home")
+    suspend fun getHomeMovie(@Query("movieId") movieId: Int? = null): BaseResponse<MovieResponse.Movie>
+
+    @GET("/movies/home_list")
+    fun getHomeMoviesList(): Call<BaseResponse<List<MovieResponse.Movie>>>
+
+    /**
+     * 查询搜索建议
+     */
+    @GET("/movies/search_suggest")
+    fun getSearchSuggest(@Query("name") name: String): Call<BaseResponse<List<Suggest>>>
 }

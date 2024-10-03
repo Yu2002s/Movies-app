@@ -51,6 +51,14 @@ object ScreenCastUtils {
         castUtils.pause()
     }
 
+    fun resume() {
+        castUtils.resume()
+    }
+
+    fun disconnect() {
+        castUtils.disconnect()
+    }
+
     fun stop() {
         Log.e("ScreenCast", "stop...")
         castUtils.stop()

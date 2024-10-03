@@ -15,4 +15,14 @@
         <item>2.0</item>
         <item>1.5</item>
     </string-array>
+    <string-array name="theme_list">
+        <item>跟随系统</item>
+        <item>亮色</item>
+        <item>深色</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>auto</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>>
 </resources>

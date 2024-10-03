@@ -13,6 +13,7 @@
         android:layout_height="280dp" />
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -20,95 +21,79 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:paddingHorizontal="10dp">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/movie_name"
+            <TextView
+                android:layout_marginEnd="10dp"
+                android:id="@+id/tv_name"
+                app:layout_goneMarginStart="0dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:padding="10dp"
-                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-                app:layout_constraintEnd_toStartOf="@+id/search_more"
+                app:layout_constraintEnd_toStartOf="@id/collect"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="@string/app_name" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/movie_info"
+            <TextView
+                android:id="@+id/tv_desc"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp"
-                app:layout_constraintEnd_toEndOf="@+id/movie_name"
-                app:layout_constraintStart_toStartOf="@id/movie_name"
-                app:layout_constraintTop_toBottomOf="@id/movie_name"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toStartOf="@id/collect"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_name"
                 tools:text="@string/app_name" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/search_more"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
+            <ImageButton
+                android:id="@+id/collect"
                 android:layout_marginEnd="10dp"
-                android:text="@string/search"
-                app:contentPadding="10dp"
-                app:icon="@drawable/baseline_search_24"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/movie_name"
-                app:layout_constraintTop_toTopOf="@id/movie_name" />
+                android:background="@null"
+                android:src="@drawable/baseline_favorite_border_24"
+                app:layout_constraintTop_toTopOf="@id/switch_source"
+                app:layout_constraintBottom_toBottomOf="@id/switch_source"
+                app:layout_constraintEnd_toStartOf="@id/switch_source"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
-            <!--<ImageButton
-                android:id="@+id/btn_like"
-                android:contentDescription="@string/like"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/switch_source"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:src="@drawable/baseline_star_outline_24"
+                android:text="换源"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/search_more"
-                app:layout_constraintTop_toBottomOf="@id/search_more" />-->
+                app:layout_constraintTop_toTopOf="@id/tv_name"
+                tools:visibility="visible" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/play_route"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/play_route"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/movie_info" />
-
-            <com.dongyu.movies.view.route.RouteView
-                android:id="@+id/route_view"
+            <com.dongyu.movies.view.VideoSourceView
+                android:visibility="invisible"
+                android:id="@+id/source_view"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/play_route" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/refresh_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/refresh"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/tv_desc" />
 
             <ProgressBar
                 android:id="@+id/loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
                 android:indeterminate="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <include
+                android:id="@+id/error"
+                layout="@layout/layout_error"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

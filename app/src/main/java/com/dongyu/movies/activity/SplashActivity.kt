@@ -1,23 +1,28 @@
 package com.dongyu.movies.activity
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.cat.sdk.ad.ADMParams
 import com.cat.sdk.ad.ADSplashAd
+import com.dongyu.movies.base.BaseActivity
 import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.databinding.ActivitySplashBinding
+import org.jetbrains.annotations.ApiStatus.OverrideOnly
 
 /**
  * 应用启动页面
  */
 @SuppressLint("CustomSplashScreen")
-class SplashActivity: AppCompatActivity() {
+class SplashActivity: BaseActivity() {
 
     companion object {
 

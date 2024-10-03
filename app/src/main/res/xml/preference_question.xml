@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="一些问题">
+        <Preference
+            app:summary="建议切换线路，如无法解决，点击[搜索更多]后选择其他线路下的视频播放"
+            app:title="无法播放" />
+        <Preference
+            app:summary="切换线路或重新打开视频页面"
+            app:title="播放卡顿" />
+
+        <Preference
+            app:summary="视频来源于互联网收集而来，本非App内嵌广告。切勿相信任何广告，建议使用无广告先例"
+            app:title="视频内含广告" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

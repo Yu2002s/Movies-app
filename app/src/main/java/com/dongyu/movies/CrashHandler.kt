@@ -2,11 +2,15 @@ package com.dongyu.movies
 
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import com.dongyu.movies.activity.CrashActivity
 import java.io.PrintWriter
 import java.io.StringWriter
 import kotlin.system.exitProcess
 
+/**
+ * App崩溃处理
+ */
 class CrashHandler: Thread.UncaughtExceptionHandler {
 
     private lateinit var defaultHandler: Thread.UncaughtExceptionHandler
@@ -43,6 +47,8 @@ class CrashHandler: Thread.UncaughtExceptionHandler {
         }
         try {
             val exception = getException(e)
+
+            Log.e("jdy", exception)
             val context = MoviesApplication.context
             context.startActivity(Intent(context, CrashActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

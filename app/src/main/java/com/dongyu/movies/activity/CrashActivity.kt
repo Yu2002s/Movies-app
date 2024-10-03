@@ -8,6 +8,9 @@ import com.dongyu.movies.base.BaseActivity
 import com.dongyu.movies.config.AppConfig
 import com.dongyu.movies.databinding.ActivityCrashBinding
 
+/**
+ * App全局闪退处理
+ */
 class CrashActivity: BaseActivity() {
 
     private val binding by lazy {

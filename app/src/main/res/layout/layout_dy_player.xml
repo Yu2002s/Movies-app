@@ -8,30 +8,42 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
-    <FrameLayout
-        android:visibility="invisible"
-        android:id="@+id/mask_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+    <LinearLayout
+        android:gravity="center_horizontal"
         android:layout_gravity="center"
-        android:background="@drawable/bg_mask"
-        android:indeterminate="true"
-        android:visibility="invisible"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/tv_network_speed"
-        android:translationZ="1dp"
-        tools:text="123k/s"
-        android:textColor="@color/white"
+        android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
+        android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/bg_mask"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <TextView
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:id="@+id/tv_network_speed"
+            android:translationZ="1dp"
+            tools:text="123k/s"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:textSize="11sp"
+            android:id="@+id/loading_tip"
+            android:text="首次加载可能较慢,多次卡顿可尝试换源"
+            android:textColor="#dedede"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/video_message"
@@ -45,5 +57,12 @@
         android:padding="10dp"
         android:textColor="@color/white"
         android:visibility="invisible" />
+
+    <FrameLayout
+        android:translationZ="10dp"
+        android:visibility="invisible"
+        android:id="@+id/mask_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </merge>

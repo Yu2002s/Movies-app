@@ -1,13 +1,14 @@
 package com.dongyu.movies.network
 
+import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
 import com.dongyu.movies.MoviesApplication
-import com.dongyu.movies.base.BaseRepository
-import com.dongyu.movies.base.requestCallResult
+import com.dongyu.movies.model.BingImageResponse
+import kotlinx.coroutines.flow.flow
 
 object AppRepository {
 
-    private val appService = BaseRepository.appService()
+    private val appService = Repository.appService
 
     suspend fun checkUpdate() = requestCallResult {
         val context = MoviesApplication.context
@@ -17,4 +18,7 @@ object AppRepository {
         appService.checkUpdate(longVersionCode)
     }
 
+    suspend fun getBingImage() = requestSuspendSimpleFlow {
+        appService.getSingleBingImage("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1")
+    }
 }

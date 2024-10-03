@@ -1,20 +1,17 @@
 package com.dongyu.movies.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.dongyu.movies.data.search.History
-import com.dongyu.movies.data.search.SearchSuggestItem
-import com.dongyu.movies.data.search.SearchUiResult
-import com.dongyu.movies.data.search.SearchUiState
-import com.dongyu.movies.data.search.SearchUiSuggest
-import com.dongyu.movies.network.SearchRepository
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.dongyu.movies.model.home.NavItem
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
 
 class HomeViewModel: ViewModel() {
+
+    private val _navStateFlow = MutableStateFlow(listOf(NavItem(title = "首页")))
+
+    val navStateFlow = _navStateFlow.asStateFlow()
+
+    fun updateNav(navItems: List<NavItem>) {
+        _navStateFlow.value = navItems
+    }
 }

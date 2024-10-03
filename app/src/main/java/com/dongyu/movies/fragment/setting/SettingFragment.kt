@@ -1,35 +1,35 @@
 package com.dongyu.movies.fragment.setting
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.webkit.MimeTypeMap
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.DropDownPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.bumptech.glide.Glide
+import com.cat.sdk.utils.QSpUtils
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.LoginActivity
-import com.dongyu.movies.base.BaseRepository
-import com.dongyu.movies.config.AppConfig
-import com.dongyu.movies.config.AppConfig.QQ_GROUP_URL
 import com.dongyu.movies.config.SPConfig
-import com.dongyu.movies.data.movie.MovieResponse
-import com.dongyu.movies.data.user.User
-import com.dongyu.movies.dialog.RouteDialog
-import com.dongyu.movies.utils.ALiPayUtils
-import com.dongyu.movies.utils.SpUtils.get
+import com.dongyu.movies.network.Repository
+import com.dongyu.movies.model.user.User
+import com.dongyu.movies.dialog.MovieSourceDialog
+import com.dongyu.movies.utils.ThemeUtils
 import com.dongyu.movies.utils.showToast
-import com.dongyu.movies.utils.toFileUri
 import com.dongyu.movies.viewmodel.UserViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class SettingFragment : PreferenceFragmentCompat() {
 
@@ -68,7 +68,7 @@ class SettingFragment : PreferenceFragmentCompat() {
         }
 
         userPreference?.setOnPreferenceClickListener {
-            if (BaseRepository.isLogin()) {
+            if (Repository.isLogin()) {
                 // 已登录了
                 return@setOnPreferenceClickListener false
             }
@@ -88,101 +88,49 @@ class SettingFragment : PreferenceFragmentCompat() {
             false
         }
 
-        findPreference<Preference>("statement")?.setOnPreferenceClickListener {
+        findPreference<Preference>("clear_cache")?.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {
-                setTitle("免责声明")
-                setMessage(getString(R.string.statement))
-                setPositiveButton("关闭", null)
+                setTitle("提示")
+                setMessage("是否清理缓存？")
+                setNegativeButton("取消", null)
+                setPositiveButton("确认") { _, _ ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        Glide.get(requireContext()).clearDiskCache()
+                        val ymd = getDateNoLineToString(System.currentTimeMillis() / 1000)
+                        QSpUtils.removeToSP(requireContext(), "ruler$ymd");
+                        requireActivity().runOnUiThread {
+                            "缓存已清理".showToast()
+                        }
+                    }
+                }
                 show()
             }
             true
         }
 
-        findPreference<Preference>("contact")?.setOnPreferenceClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/dongyu2002"))
-            startActivity(intent)
-            true
-        }
-
-        findPreference<Preference>("group")?.setOnPreferenceClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
-            startActivity(intent)
-            true
-        }
-
         findPreference<Preference>("route_id")?.setOnPreferenceClickListener {
-            RouteDialog(requireActivity() as AppCompatActivity) {
+            MovieSourceDialog(requireActivity() as AppCompatActivity) {
                 "请返回主页刷新".showToast()
             }
             true
         }
 
-        findPreference<Preference>("donation")?.setOnPreferenceClickListener {
-            MaterialAlertDialogBuilder(requireContext()).apply {
-                setTitle("捐赠")
-                setMessage("你的捐赠将是我开发最大的动力！")
-                setPositiveButton("支付宝") { _, _ ->
-                    ALiPayUtils.startAlipayClient()
-                }
-                // setNegativeButton("微信") { _, _ -> }
-                show()
-            }
-            true
-        }
-
-        findPreference<Preference>("qq_group")?.setOnPreferenceClickListener {
-            goQQGroup()
-            true
-        }
-
-        findPreference<Preference>("home_page")?.setOnPreferenceClickListener {
-            goPageHome()
-            true
-        }
-
-        findPreference<Preference>("share_app")?.setOnPreferenceClickListener {
-            val appFile = requireContext().packageManager.getApplicationInfo(
-                requireContext().packageName,
-                0
-            ).sourceDir
-            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = MimeTypeMap.getSingleton().getMimeTypeFromExtension("apk")
-            intent.putExtra(Intent.EXTRA_STREAM, appFile.toFileUri())
-            startActivity(Intent.createChooser(intent, "分享App到..."))
+        findPreference<DropDownPreference>(SPConfig.APP_THEME)?.setOnPreferenceChangeListener { _, any ->
+            ThemeUtils.setTheme(requireActivity(), any.toString())
+            ThemeUtils.notifyThemeChanged()
             true
         }
     }
 
-    private fun showMoviesList(result: Result<List<MovieResponse.Movie>>) {
-        result.onSuccess { list ->
-            val currentMovieId = SPConfig.CURRENT_ROUTE_ID.get<Int?>(-1)
-            val index = list.indexOfFirst {
-                it.id == currentMovieId
-            }
-            MaterialAlertDialogBuilder(requireContext()).apply {
-                setTitle("线路列表")
-                setSingleChoiceItems(list.map { it.name }.toTypedArray(), index, null)
-                show()
-            }
-        }.onFailure {
-            it.message.showToast()
-        }
+    @SuppressLint("SimpleDateFormat")
+    fun getDateNoLineToString(time: Long): String {
+        val d = Date(time * 1000)
+        val sf = SimpleDateFormat("yyyyMMdd")
+        return sf.format(d)
     }
 
     private fun goLogin() {
         launcher.launch(Intent(requireContext(), LoginActivity::class.java))
-    }
-
-    private fun goQQGroup() {
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            QQ_GROUP_URL.toUri()
-        )
-        startActivity(intent)
-    }
-
-    private fun goPageHome() {
-        startActivity(Intent(Intent.ACTION_VIEW, AppConfig.APP_PAGE_HOME.toUri()))
     }
 
     /**

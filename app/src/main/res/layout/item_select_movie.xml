@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:drawablePadding="6dp"
+    android:background="@drawable/item_select"
+    android:textColor="@color/tv_select"
+    android:id="@+id/tv_select"
+    android:gravity="center_horizontal"
+    android:padding="10dp"
+    android:textSize="17sp"
+    app:drawableEndCompat="@drawable/baseline_done_24"
+    android:foreground="?android:selectableItemBackground"
+    app:drawableTint="@color/white"
+    tools:text="@string/app_name">
+
+</TextView>

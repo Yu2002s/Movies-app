@@ -1,11 +1,10 @@
 package com.dongyu.movies.adapter
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.dongyu.movies.data.home.RankItem
+import com.dongyu.movies.model.home.RankItem
 import com.dongyu.movies.databinding.ItemListRankBinding
 import com.dongyu.movies.event.OnItemClickListener
 

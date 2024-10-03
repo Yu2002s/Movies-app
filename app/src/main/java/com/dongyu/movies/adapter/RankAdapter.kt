@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.dongyu.movies.data.home.RankItem
+import com.dongyu.movies.model.home.RankItem
 import com.dongyu.movies.databinding.ItemRankBinding
 import com.dongyu.movies.event.OnCardItemClickListener
 import com.dongyu.movies.event.OnItemClickListener

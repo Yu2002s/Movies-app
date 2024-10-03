@@ -39,6 +39,8 @@ abstract class BaseScreenCastUtils {
 
     abstract fun seekTo(seek: Int)
 
+    abstract fun disconnect()
+
 //    abstract fun getCurrentPosition(): Int
 
     abstract fun stop()

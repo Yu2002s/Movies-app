@@ -4,12 +4,11 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dongyu.movies.R
-import com.dongyu.movies.data.user.LoginCheckState
-import com.dongyu.movies.data.user.LoginFrom
+import com.dongyu.movies.model.user.LoginCheckState
+import com.dongyu.movies.model.user.LoginFrom
 import com.dongyu.movies.network.UserRepository
 import com.dongyu.movies.utils.showToast
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

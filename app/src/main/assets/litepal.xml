@@ -19,7 +19,7 @@
 			For example:
     	<version value="1" />
     -->
-    <version value="8" />
+    <version value="13" />
 
     <!--
     	Define your models in the list with mapping tag, LitePal will
@@ -32,9 +32,9 @@
     	</list>
     -->
     <list>
-        <mapping class="com.dongyu.movies.data.search.History"/>
-        <mapping class="com.dongyu.movies.data.history.PlayHistory"/>
-        <mapping class="com.dongyu.movies.data.movie.Star"/>
+        <mapping class="com.dongyu.movies.model.search.History" />
+        <mapping class="com.dongyu.movies.model.movie.PlayHistory" />
+        <mapping class="com.dongyu.movies.model.download.Download" />
     </list>
 
     <!--
