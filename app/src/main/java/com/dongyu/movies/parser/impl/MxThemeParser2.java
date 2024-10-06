@@ -17,6 +17,8 @@ import com.dongyu.movies.model.parser.ParserResult;
 import com.dongyu.movies.model.parser.PlayParam;
 import com.dongyu.movies.parser.BaseParser;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -151,7 +153,6 @@ public class MxThemeParser2 extends MxThemeParser {
     @Override
     public List<NavItem> parseNav(Document document) {
         Elements navItemEls = document.select(".homepage .nav .nav-menu-item a");
-        int index = 0;
         return navItemEls.stream().map(element -> {
                     String href = element.attr("href");
                     String id;

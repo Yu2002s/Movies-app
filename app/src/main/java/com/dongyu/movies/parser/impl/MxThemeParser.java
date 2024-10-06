@@ -20,7 +20,6 @@ import com.dongyu.movies.parser.ParserList;
 import com.dongyu.movies.parser.SimpleParser;
 import com.google.gson.Gson;
 
-import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,7 +28,6 @@ import org.jsoup.select.Elements;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -307,15 +305,23 @@ public class MxThemeParser extends SimpleParser {
             try {
                 JSONObject jsonObject = new JSONObject(json);
                 String encryptUrl = jsonObject.getString("url");
+                // 检查是否进行了URL编码
+                /*if (encryptUrl.startsWith("%")) {
+                    encryptUrl = URLDecoder.decode(encryptUrl);
+                }*/
+                Log.i(TAG, "encryptUrl: " + encryptUrl);
+                String videoUrl = URLDecoder.decode(encryptUrl);
                 if (!encryptUrl.startsWith("http")) {
                     encryptUrl = new String(Base64.decode(encryptUrl, Base64.DEFAULT));
                 }
-                Log.i(TAG, "encryptUrl: " + encryptUrl);
-                String videoUrl = URLDecoder.decode(encryptUrl);
                 if (videoUrl.endsWith(".html")) {
-                    videoUrl = parseXm(encryptUrl);
+                    // videoUrl = parseXm(encryptUrl);
+                    videoUrl = parseVideoUrl(encryptUrl);
                 }
                 Log.i(TAG, "videoUrl: " + videoUrl);
+                /*if (videoUrl == null) {
+                    videoUrl = parseXMFLV(encryptUrl);
+                }*/
                 // 去除末尾无效参数 index.m3u8&token=33d5060dcca7 (MYD)
                 if (videoUrl == null) {
                     return ParserResult.error("解析地址失败");

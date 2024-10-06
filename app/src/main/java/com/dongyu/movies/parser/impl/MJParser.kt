@@ -1,6 +1,5 @@
 package com.dongyu.movies.parser.impl
 
-import android.util.Log
 import com.dongyu.movies.model.movie.MovieDetail
 import com.dongyu.movies.model.movie.MovieItem
 import com.dongyu.movies.model.movie.VideoSource

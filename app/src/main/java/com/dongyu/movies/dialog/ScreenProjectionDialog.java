@@ -5,27 +5,24 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Consumer;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dongyu.movies.R;
 import com.dongyu.movies.databinding.DialogScrrenProjectionBinding;
+import com.dongyu.movies.event.OnScreencastListener;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.utils.UtilsKt;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.wanban.screencast.ScreenCastUtils;
-import com.wanban.screencast.dlna.DLANUtils;
 import com.wanban.screencast.listener.OnDeviceConnectListener;
 import com.wanban.screencast.listener.OnSearchedDevicesListener;
 import com.wanban.screencast.listener.OnVideoProgressUpdateListener;
@@ -40,13 +37,13 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
 
     private DialogScrrenProjectionBinding binding;
 
-    private boolean isConnected = false;
-    private View.OnClickListener nextSelectionClickListener;
+    private OnScreencastListener screencastListener;
     private final List<DeviceModel> deviceInfoList = new ArrayList<>();
 
     private String url;
     private String title;
-    private long duration;
+
+    private boolean isSeeking = false;
 
     public ScreenProjectionDialog setUrl(String url) {
         this.url = url;
@@ -58,17 +55,12 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
         return this;
     }
 
-    public ScreenProjectionDialog setDuration(long duration) {
-        this.duration = duration;
-        return this;
-    }
-
     public ScreenProjectionDialog(@NonNull Context context) {
         super(context);
     }
 
-    public void setNextSelectionClickListener(View.OnClickListener nextSelectionClickListener) {
-        this.nextSelectionClickListener = nextSelectionClickListener;
+    public void setScreencastListener(OnScreencastListener screencastListener) {
+        this.screencastListener = screencastListener;
     }
 
     @Override
@@ -101,14 +93,19 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
                     ScreenCastUtils.INSTANCE.connectDevice(name, new OnDeviceConnectListener() {
                         @Override
                         public void onDeviceConnect() {
-                            isConnected = true;
                             ScreenCastUtils.INSTANCE.play(url, title, ScreenProjectionDialog.this);
                             UtilsKt.showToast(name + "已连接", 2000);
+                            if (screencastListener != null) {
+                                screencastListener.onConnected();
+                            }
+                            dismiss();
                         }
 
                         @Override
                         public void onDeviceDisConnect() {
-                            isConnected = false;
+                            if (screencastListener != null) {
+                                screencastListener.onDisconnect();
+                            }
                             UtilsKt.showToast(name + "已断开连接", 2000);
                         }
                     });
@@ -131,14 +128,34 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
 
         binding.pause.setOnClickListener(v -> ScreenCastUtils.INSTANCE.pause());
 
-        binding.resume.setOnClickListener(v -> ScreenCastUtils.INSTANCE.resume());
+        binding.resume.setOnClickListener(v -> resume());
 
         binding.exit.setOnClickListener(v -> {
-            ScreenCastUtils.INSTANCE.stop();
-            ScreenCastUtils.INSTANCE.stopBrowser();
+            stop();
+            if (screencastListener != null) {
+                screencastListener.onDisconnect();
+            }
+            dismiss();
         });
 
-        binding.next.setOnClickListener(nextSelectionClickListener);
+        binding.progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                binding.currentTime.setText(TimeUtilsKt.getTime(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                isSeeking = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                isSeeking = false;
+                seekTo(seekBar.getProgress());
+            }
+        });
+
     }
 
     @Override
@@ -151,8 +168,26 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    public void resume() {
+        ScreenCastUtils.INSTANCE.resume();
+    }
+
+    /**
+     * 非正常停止，不会停止电视播放，只是停止连接
+     */
+    public void stop() {
         ScreenCastUtils.INSTANCE.stopBrowser();
         ScreenCastUtils.INSTANCE.disconnect();
+    }
+
+    public void seekTo(long to) {
+        ScreenCastUtils.INSTANCE.seekTo((int) to);
+    }
+
+    public void pause() {
+        ScreenCastUtils.INSTANCE.pause();
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
@@ -167,15 +202,15 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
      * @param url 地址
      * @param title 标题
      */
-    public ScreenProjectionDialog play(String url, String title, long duration) {
+    public ScreenProjectionDialog play(String url, String title) {
         if (TextUtils.isEmpty(url)) {
             UtilsKt.showToast("视频未加载完成", 1000);
             return this;
         }
         this.url = url;
         this.title = title;
-        // binding.duration.setText(TimeUtilsKt.getTime(duration));
-        // binding.progress.setMax((int) duration);
+        binding.progress.setProgress(0);
+        binding.progress.setMax(0);
         ScreenCastUtils.INSTANCE.play(url, title, this);
         return this;
     }
@@ -194,8 +229,16 @@ public class ScreenProjectionDialog extends BottomSheetDialog implements OnSearc
     }
 
     @Override
-    public void onVideoProgressUpdate(long time) {
-        // binding.currentTime.setText(TimeUtilsKt.getTime(time));
-        // binding.progress.setProgress((int) time);
+    public void onVideoProgressUpdate(long time, long duration) {
+        if (isSeeking) {
+            return;
+        }
+        if (screencastListener != null) {
+            screencastListener.onProgress(time, duration);
+        }
+         binding.currentTime.setText(TimeUtilsKt.getTime(time));
+         binding.progress.setProgress((int) time);
+         binding.progress.setMax((int) duration);
+         binding.duration.setText(TimeUtilsKt.getTime(duration));
     }
 }

@@ -52,7 +52,6 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
     }
 
     private lateinit var videoSources: List<VideoSource>
-    private lateinit var currentSourceItem: VideoSource.Item
     private lateinit var tvName: String
     private lateinit var movieItem: MovieItem
 
@@ -185,7 +184,8 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             movieItem = data.movieItem
             tvName = movieItem.tvName
             videoSources = data.videoSources
-            currentSourceItem = data.currentSourceItem
+            binding.dyPlayer.setVideoSources(data.videoSources)
+            // currentSourceItem = data.currentSourceItem
             binding.apply {
                 tvName.text = this@VideoActivity.tvName
                 tvDesc.text =
@@ -211,7 +211,9 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
         }
         val dyPlayer = binding.dyPlayer
         result.onSuccess { url ->
-            dyPlayer.hideMaskView()
+            if (!dyPlayer.isScreencast) {
+                dyPlayer.hideMaskView()
+            }
             dyPlayer.play(url)
         }.onFailure { e ->
             if (e is CancellationException) {
@@ -220,8 +222,8 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             }
             dyPlayer.apply {
                 hideLoading()
-                dyPlayer.playError()
-                dyPlayer.showMaskView()
+                playError()
+                showMaskView()
             }
             (e.message + "\n请尝试更换线路、换源").showToast()
             Log.e(TAG, e.toString())
@@ -269,23 +271,6 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             setOnDismissListener {
                 playerSetting.removeAllViewsInLayout()
             }
-            show()
-        }
-    }
-
-    /**
-     * 显示选集对话框
-     */
-    private fun showVideoSourceDialog() {
-        if (!::videoSources.isInitialized) {
-            return
-        }
-        val videoSourceView = VideoSourceView(this)
-        videoSourceView.submitList(videoSources, false) { item, _ ->
-            binding.sourceView.setSelection(item)
-        }.setSelection(currentSourceItem)
-        BaseAppCompatDialog(this).apply {
-            setContentView(videoSourceView)
             show()
         }
     }
@@ -342,7 +327,7 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                     dyPlayer.hideMaskView()
                 }
 
-                override fun onReloadClick() {
+                override fun onReloadClick(currentSourceItem: VideoSource.Item) {
                     dyPlayer.hideMaskView()
                     dyPlayer.showLoading()
                     // 清除选中的源
@@ -369,17 +354,12 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 showSearchFragmentDialog()
             }
 
-            // 监听视频的播放事件
+            // 监听视频播放状态
             dyPlayer.setPlayerStateListener(this)
 
-            // 播放下一集事件
-            dyPlayer.bottomBinding.playNext.setOnClickListener {
-                binding.sourceView.setNextSelection()
-            }
-
-            // 选集点击事件
-            dyPlayer.bottomBinding.selections.setOnClickListener {
-                showVideoSourceDialog()
+            // 监听播放器选集改变事件
+            dyPlayer.setSourceItemChangeListener { item, _ ->
+                binding.sourceView.setSelection(item)
             }
 
             // 视频下载按钮点击事件
@@ -399,6 +379,7 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 MovieDetailDialog(this, movieItem).show()
             }
 
+            // 收藏按钮的点击事件
             binding.collect.setOnClickListener {
                 playHistory.isCollected = !playHistory.isCollected
                 updateCollectIcon()
@@ -411,6 +392,7 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             showPlayerSettingDialog()
         }
 
+        // 弹幕显示状态点击事件
         dyPlayer.bottomBinding.danmakuVisible.setOnClickListener { v ->
             val textView = v as TextView
             if (textView.text == "弹幕开") {
@@ -430,13 +412,15 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
      */
     override fun onSourceItemChanged(item: VideoSource.Item, position: Int) {
         Log.d(TAG, "onSourceItemChanged: $item")
-        currentSourceItem = item
         binding.dyPlayer.apply {
+            setCurrentSourceItem(item)
             hideMaskView()
             showLoading()
-            stop()
-            title = tvName + " " + item.name
-            startDanmaku(position)
+            if (!isScreencast) {
+                stop()
+                title = tvName + " " + item.name
+                startDanmaku(position)
+            }
         }
         viewModel.play(item)
     }

@@ -2,6 +2,7 @@ package com.dongyu.movies.utils
 
 import android.content.Intent
 import android.os.Parcelable
+import android.util.Base64
 import android.widget.Toast
 import com.dongyu.movies.MoviesApplication
 
@@ -45,4 +46,26 @@ fun String.isUrl(): Boolean {
   }
   val url = this.trim()
   return url.matches("^(http|https)://.+".toRegex())
+}
+
+fun String.toHexString(): String {
+  return this.map {
+    "%02X".format(it.code)
+  }.joinToString("").lowercase()
+}
+
+fun String.base64ToHex(): String {
+  // 将Base64字符串解码为字节数组
+  val decodedBytes: ByteArray = Base64.decode(this, Base64.DEFAULT)
+  // 将字节数组转换为十六进制字符串
+  val hexString = StringBuilder()
+  for (b in decodedBytes) {
+    // 将每个字节转换为两位十六进制数
+    val hex = Integer.toHexString(0xff and b.toInt())
+    if (hex.length == 1) {
+      hexString.append('0') // 如果是一位，则在前面补0
+    }
+    hexString.append(hex)
+  }
+  return hexString.toString()
 }

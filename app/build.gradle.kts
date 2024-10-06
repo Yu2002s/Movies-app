@@ -38,8 +38,8 @@ android {
         applicationId = "com.dongyu.movies"
         minSdk = 24
         targetSdk = 34
-        versionCode = 27
-        versionName = "1.98"
+        versionCode = 29
+        versionName = "1.99-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
@@ -125,6 +125,8 @@ dependencies {
     implementation("com.github.liangjingkanji:BRV:1.6.0")
     implementation("io.github.youth5201314:banner:2.2.3")
     implementation("io.github.scwang90:refresh-header-classics:2.1.0")
+    // https://mvnrepository.com/artifact/com.jcraft/jzlib
+    implementation("com.jcraft:jzlib:1.1.3")
     implementation(project(":dyplayer"))
     implementation(project(":A4ijkplayer"))
     implementation(project(":screencast"))

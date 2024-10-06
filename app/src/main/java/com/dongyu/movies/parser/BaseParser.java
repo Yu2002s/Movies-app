@@ -1,6 +1,7 @@
 package com.dongyu.movies.parser;
 
 import android.text.TextUtils;
+import android.util.ArrayMap;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -54,27 +55,17 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     /**
      * 用户代理
      */
-    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
     /**
      * 需要返回的格式
      */
-    private static final String ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+    public static final String ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
 
     /**
      * 语言相关
      */
-    private static final String ACCEPT_LANGUAGE = "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7";
-
-    /**
-     * 虾米解析接口
-     */
-    private static final String XM_API = "https://122.228.8.29:4433/xmflv.js";
-
-    /**
-     * 虾米AES加密偏移量
-     */
-    private static final String XM_AES_IV = "3cccf88181408f19";
+    public static final String ACCEPT_LANGUAGE = "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7";
 
     /**
      * 名称参数(搜索需要)
@@ -151,6 +142,11 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      * 解析类型
      */
     private TYPE type;
+
+    /**
+     * 储存Cookie在内存中
+     */
+    private final Map<String, String> cookieMap = new ArrayMap<>();
 
     /**
      * 获取网站地址（未进行解析的地址）
@@ -617,15 +613,19 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      */
     public Document getDocument(String parserUrl) {
         try {
-            Log.i(TAG, "getDocument: " + parserUrl);
-            Connection connection = createConnection(parseUrl);
-            Document document = connection.get();
-            Connection.Response response = connection.response();
-            URL domain = response.url();
+            URL domain = new URL(parserUrl);
             // 这里获取网站主机信息
             this.host = domain.getProtocol() + "://" + domain.getHost();
             if (domain.getPort() != -1) {
                 this.host += ":" + domain.getPort();
+            }
+            Log.i(TAG, "getDocument: " + parserUrl);
+            Connection connection = createConnection(parseUrl);
+            Document document = connection.get();
+            Connection.Response response = connection.response();
+            String setCookie = response.header("Set-Cookie");
+            if (!TextUtils.isEmpty(setCookie)) {
+                cookieMap.put(host, setCookie);
             }
             return document;
         } catch (IOException e) {
@@ -640,10 +640,16 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      * @param parseUrl 已解析地址
      * @return 连接对象
      */
-    private Connection createConnection(String parseUrl) {
+    protected Connection createConnection(String parseUrl) {
         String ip = IpUtil.getRandomChinaIP();
         Connection connect = Jsoup.connect(parseUrl);
+        String cookie = cookieMap.get(this.host);
+        if (!TextUtils.isEmpty(cookie)) {
+            connect.header("Cookie", cookie);
+        }
         connect.userAgent(USER_AGENT);
+        connect.header("Connection", "keep-alive");
+        connect.header("Accept-Encoding", "gzip, deflate, br");
         connect.header("Accept", ACCEPT);
         connect.header("Accept-Language", ACCEPT_LANGUAGE);
         connect.header("X-Forwarded-For", ip);
@@ -657,72 +663,6 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         connect.header("WL-Proxy-Client-IP", ip);
         connect.timeout(MAX_TIMEOUT);
         return connect;
-    }
-
-    /**
-     * 虾米解析播放地址（必须是官方地址）
-     *
-     * @param url 地址（官方播放地址）
-     * @return m3u8播放地址
-     */
-    @Nullable
-    public String parseXm(String url) {
-        // url = URLEncoder.encode(url);
-        OkHttpClient okHttpClient = Repository.INSTANCE.getOkHttpClient();
-        String ip = IpUtil.getRandomChinaIP();
-        String time = String.valueOf(System.currentTimeMillis());
-        String content = Md5Utils.md5Hex(time + url);
-        if (content == null) {
-            return null;
-        }
-        String key = Md5Utils.md5Hex(content);
-        if (key == null) {
-            return null;
-        }
-        String encrypt = AESUtils.encrypt("AES/CBC/NoPadding",
-                key, XM_AES_IV, content);
-        if (encrypt == null) {
-            return null;
-        }
-        FormBody formBody = new FormBody.Builder()
-                .add("wap", "")
-                .add("url", url)
-                .add("time", time)
-                .add("key", encrypt)
-                .build();
-        Request request = new Request.Builder()
-                .url(XM_API)
-                .header("User-Agent", USER_AGENT)
-                .header("Host", "122.228.8.29:4433")
-                .header("Origin", "https://jx.xmflv.com")
-                .header("X-Forwarded-For", ip)
-                .header("HTTP_X_FORWARDED_FOR", ip)
-                .header("HTTP_CLIENT_IP", ip)
-                .header("REMOTE_ADDR", ip)
-                .header("X-Real-IP", ip)
-                .header("X-Originating-IP", ip)
-                .header("Proxy-Client-IP", ip)
-                .header("X-Remote-IP", ip)
-                .header("WL-Proxy-Client-IP", ip)
-                .post(formBody)
-                .build();
-        try (Response response = okHttpClient.newCall(request).execute()) {
-            assert response.body() != null;
-            String body = response.body().string();
-            Log.d(TAG, "xm-body: " + body);
-            JSONObject jsonObject = new JSONObject(body);
-            int code = jsonObject.getInt("code");
-            if (code != 200) {
-                return null;
-            }
-            String encryptUrl = jsonObject.getString("url");
-            String aes_key = jsonObject.getString("aes_key");
-            String iv = jsonObject.getString("aes_iv");
-            return AESUtils.decrypt("AES/CBC/PKCS5Padding", aes_key, iv, encryptUrl);
-        } catch (Exception e) {
-            Log.e(TAG, "parseXm: " + e);
-            return null;
-        }
     }
 
     @NonNull

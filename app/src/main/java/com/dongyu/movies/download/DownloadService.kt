@@ -1,10 +1,23 @@
 package com.dongyu.movies.download
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.dongyu.movies.MoviesApplication
+import com.dongyu.movies.R
+import com.dongyu.movies.activity.DownloadActivity
 import com.dongyu.movies.model.download.Download
 import com.dongyu.movies.model.download.DownloadStatus
 import com.dongyu.movies.utils.showToast
@@ -18,11 +31,12 @@ class DownloadService : Service() {
 
     companion object {
         private val TAG = DownloadService::class.simpleName
-
-        private const val THREAD_COUNT = 10
+        const val DOWNLOAD_CHANNEL_ID = "download_service"
     }
 
     private val downloadBinder = DownloadBinder()
+
+    private lateinit var notificationManager: NotificationManagerCompat
 
     inner class DownloadBinder : Binder() {
         fun getService() = this@DownloadService
@@ -41,6 +55,21 @@ class DownloadService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "onCreate $this")
+
+        // 构建通知渠道
+        notificationManager = NotificationManagerCompat.from(this)
+
+        val notificationChannel = NotificationChannelCompat.Builder(
+            DOWNLOAD_CHANNEL_ID,
+            NotificationManagerCompat.IMPORTANCE_DEFAULT
+        )
+            .setName(this::class.simpleName)
+            .setVibrationEnabled(false)
+            .setShowBadge(true)
+            .setDescription("App内部的下载服务展示状态通知")
+            .build()
+
+        notificationManager.createNotificationChannel(notificationChannel)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -53,7 +82,8 @@ class DownloadService : Service() {
         Log.d(TAG, "onDestroy $this")
         _downloadList.clear()
         downloadListener = null
-        executorService.shutdown()
+        executorThreadPool.shutdownNow()
+        notificationManager.cancelAll()
     }
 
     /**
@@ -64,22 +94,22 @@ class DownloadService : Service() {
     var downloadListener: DownloadListener? = null
 
     /**
-     * 线程池
+     * 其他业务线程池
      */
-    private val executorService = ThreadPoolExecutor(
-        THREAD_COUNT, THREAD_COUNT,
-        0L, TimeUnit.MILLISECONDS,
-        LinkedBlockingQueue()
+    private val executorThreadPool = ThreadPoolExecutor(
+        5, 5, 0, TimeUnit.SECONDS, LinkedBlockingQueue()
     )
 
-    init {
-
-    }
-
+    /**
+     * 下载队列中是否存在下载
+     */
     fun isContainsDownload(download: Download): Boolean {
         return _downloadList.containsKey(download)
     }
 
+    /**
+     * 获取真实的下载状态
+     */
     fun getDownloadStatus(download: Download): Int {
         val downloader = _downloadList[download]
         if (download.status == DownloadStatus.DOWNLOADING) {
@@ -94,7 +124,10 @@ class DownloadService : Service() {
         return download.status
     }
 
-    fun resumeOrStopDownload(download: Download) {
+    /**
+     * 恢复或者暂停下载
+     */
+    fun resumeOrPauseDownload(download: Download) {
         val m3U8Downloader = _downloadList[download]
         if (m3U8Downloader == null) {
             startDownload(download)
@@ -108,7 +141,14 @@ class DownloadService : Service() {
         }
     }
 
+    /**
+     * 删除下载
+     */
     fun removeDownload(download: Download) {
+        // 子线程中操作数据库
+        executorThreadPool.execute {
+            download.delete()
+        }
         _downloadList[download]?.stop()
         val file = File(download.downloadPath)
         file.delete()
@@ -118,30 +158,90 @@ class DownloadService : Service() {
                 it.delete()
             }
         }
-        executorService.execute {
-            download.delete()
-        }
+
         _downloadList.remove(download)
         download.listener = null
+        notificationManager.cancel(download.id.toInt())
     }
 
     private fun startDownload(download: Download) {
         download.listener = object : DownloadListener {
             override fun onDownload(download: Download) {
-                if (download.status == DownloadStatus.COMPLETED) {
-                    _downloadList.remove(download)
-                    download.listener = null
-                }
-                Log.d(TAG, "downloadListener: ${download}")
+                updateDownloadStatus(download)
+                // Log.d(TAG, "downloadListener: ${download}")
                 downloadListener?.onDownload(download)
             }
         }
-        val m3U8Downloader = M3U8Downloader(executorService, download)
+        val m3U8Downloader = M3U8Downloader(executorThreadPool, download)
         _downloadList[download] = m3U8Downloader
         m3U8Downloader.download()
     }
 
+    private val notification by lazy {
+        NotificationCompat.Builder(this, DOWNLOAD_CHANNEL_ID)
+            .setWhen(System.currentTimeMillis())
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(this, DownloadActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateDownloadStatus(download: Download) {
+        notification.setContentText(download.statusStr)
+        notification.setWhen(System.currentTimeMillis())
+        when (download.status) {
+            DownloadStatus.UNSTART -> {
+
+            }
+
+            DownloadStatus.DOWNLOADING -> {
+                notification.setSmallIcon(R.drawable.baseline_arrow_circle_down_24)
+                notification.setProgress(100, download.progress, false)
+            }
+
+            DownloadStatus.PREPARE -> {
+                notification.setOngoing(true)
+                notification.setContentTitle(download.name)
+                notification.setProgress(100, 0, true)
+            }
+
+            DownloadStatus.ERROR -> {
+                notification.setOngoing(false)
+                notification.setSmallIcon(R.drawable.baseline_close_24)
+            }
+
+            DownloadStatus.MERGE -> {
+
+            }
+
+            DownloadStatus.PAUSE -> {
+                notification.setSmallIcon(R.drawable.baseline_pause_circle_outline_24)
+            }
+
+            DownloadStatus.COMPLETED -> {
+                notification.setOngoing(false)
+                _downloadList.remove(download)
+                download.listener = null
+                notification.setProgress(0, 0, false)
+                notification.setSmallIcon(R.drawable.baseline_done_24)
+            }
+        }
+        notificationManager.notify(download.id.toInt(), notification.build())
+    }
+
     fun addDownload(url: String, name: String = "", groupName: String = "") {
+        if (_downloadList.size > 4) {
+            "为了更好的体验，同时只能下载4个任务(包括已暂停任务)".showToast()
+            return
+        }
+
         // 开始下载
         val download = Download(url = url, name = name, groupName = groupName)
 

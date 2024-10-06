@@ -35,7 +35,7 @@
             android:entries="@array/theme_list"
             android:entryValues="@array/theme_values"
             app:useSimpleSummaryProvider="true"
-            app:key="app_theme"
+            app:key="theme"
             app:title="主题设置" />
 
     </PreferenceCategory>

@@ -1,5 +1,6 @@
 package com.dongyu.movies.parser;
 
+import com.dongyu.movies.parser.impl.CCParser;
 import com.dongyu.movies.parser.impl.KeKeParser;
 import com.dongyu.movies.parser.impl.MJParser;
 import com.dongyu.movies.parser.impl.MxThemeParser;
@@ -10,7 +11,8 @@ public enum ParserList {
     KE_KE(1, new KeKeParser()),
     MX_THEME(2, new MxThemeParser()),
     MX_THEME2(3, new MxThemeParser2()),
-    MJ(4, new MJParser());
+    MJ(4, new MJParser()),
+    CC(5, new CCParser());
 
     /**
      * 唯一的解析id

@@ -53,7 +53,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class BasePlayer extends FrameLayout implements PlayerTouchListener, PlayerStateListener {
@@ -256,7 +255,6 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
              int windowWidth = DisplayUtilsKt.getWindowWidth(activity);
              newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(windowWidth, MeasureSpec.EXACTLY);
         }
-        Log.d(TAG, "playerHeight: " + playerHeight);
         super.onMeasure(newWidthMeasureSpec, newHeightMeasureSpec);
     }
 
@@ -273,6 +271,10 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     public void showMaskView() {
+        if (isShowMaskView()) {
+            return;
+        }
+        hideLoading();
         FrameLayout maskLayout = binding.maskLayout;
         View maskView = getMaskView(maskLayout);
         Drawable background = getMaskViewBackground();
@@ -288,6 +290,10 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         if (maskLayout.getVisibility() == VISIBLE) {
             binding.maskLayout.setVisibility(GONE);
         }
+    }
+
+    public boolean isShowMaskView() {
+        return binding.maskLayout.getVisibility() == VISIBLE;
     }
 
     public void setMaskView(@Nullable View maskView) {
@@ -793,10 +799,10 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     public void pause() {
+        stopProgressTimer();
+        onPlayStateChanged(STATE_PAUSED);
         if (isPlaying()) {
             ijkMediaPlayer.pause();
-            stopProgressTimer();
-            onPlayStateChanged(STATE_PAUSED);
         }
     }
 
@@ -907,6 +913,9 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     public void showLoading() {
+        if (isShowMaskView()) {
+            return;
+        }
         binding.progressBar.setVisibility(VISIBLE);
         binding.tvNetworkSpeed.setVisibility(VISIBLE);
         binding.loadingTip.setVisibility(VISIBLE);
@@ -1160,8 +1169,11 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             onVideoPrepared(this);
             if (getCurrentProgress() == 0) {
                 iMediaPlayer.start();
+                String dataSource = iMediaPlayer.getDataSource();
+                if (isShowMaskView() || !hasWindowFocus() && dataSource.startsWith("http")) {
+                    pause();
+                }
             }
-            // setSurfaceView();
         });
 
         ijkMediaPlayer.setOnVideoSizeChangedListener((mp, width, height, sar_num, sar_den) -> setSurfaceView());
@@ -1171,6 +1183,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             if (what == IjkMediaPlayer.MEDIA_INFO_BUFFERING_START) {
                 // 开始缓冲时
                 onPlayStateChanged(STATE_BUFFERING);
+                // pause();
                 showLoading();
                 // startBuffering();
             } else if (what == IjkMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START) {
@@ -1178,11 +1191,14 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
                 hideLoading();
                 // onPlayStateChanged(STATE_PLAYING);
             } else if (what == IjkMediaPlayer.MEDIA_INFO_BUFFERING_END) {
-                // 缓冲完成时
-                onPlayStateChanged(STATE_PLAYING);
                 hideLoading();
                 // 如果缓冲前是已暂停状态，则不进行恢复播放
-                if (isPause()) return false;
+                if (isShowMaskView() || !hasWindowFocus()) {
+                    pause();
+                    return false;
+                }
+                // 缓冲完成时
+                onPlayStateChanged(STATE_PLAYING);
                 resume();
             }
             return false;

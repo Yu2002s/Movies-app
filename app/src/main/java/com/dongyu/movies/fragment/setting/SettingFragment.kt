@@ -28,6 +28,7 @@ import com.dongyu.movies.viewmodel.UserViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -91,10 +92,11 @@ class SettingFragment : PreferenceFragmentCompat() {
         findPreference<Preference>("clear_cache")?.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {
                 setTitle("提示")
-                setMessage("是否清理缓存？")
+                setMessage("是否清理缓存？注意：如果此时正在下载文件，请勿清理！")
                 setNegativeButton("取消", null)
                 setPositiveButton("确认") { _, _ ->
                     lifecycleScope.launch(Dispatchers.IO) {
+                        requireContext().externalCacheDir?.deleteRecursively()
                         Glide.get(requireContext()).clearDiskCache()
                         val ymd = getDateNoLineToString(System.currentTimeMillis() / 1000)
                         QSpUtils.removeToSP(requireContext(), "ruler$ymd");

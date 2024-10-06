@@ -1,11 +1,24 @@
 package com.dongyu.movies.download
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Environment
 import android.text.TextUtils
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.dongyu.movies.MoviesApplication
+import com.dongyu.movies.R
 import com.dongyu.movies.model.download.Download
 import com.dongyu.movies.utils.isUrl
+import org.litepal.LitePal
+import org.litepal.extension.findFirst
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -22,6 +35,9 @@ import java.security.InvalidKeyException
 import java.security.spec.AlgorithmParameterSpec
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -29,10 +45,9 @@ import javax.crypto.spec.SecretKeySpec
 
 /**
  * M3U8下载器
- * @param executorService 线程池
  */
 class M3U8Downloader(
-    private val executorService: ExecutorService,
+    private val executorThreadPool: ExecutorService,
     val download: Download
 ) {
 
@@ -46,8 +61,8 @@ class M3U8Downloader(
 
     fun download() {
         // 开始下载
-        executorService.execute {
-            downloadTask = M3U8DownloadTask(executorService, download)
+        executorThreadPool.execute {
+            downloadTask = M3U8DownloadTask(download)
             downloadTask?.startDownload()
         }
     }
@@ -64,29 +79,35 @@ class M3U8Downloader(
         downloadTask?.stopDownload()
     }
 
-
     /**
      * M3U8下载任务
      */
     class M3U8DownloadTask(
-        private val executorService: ExecutorService,
-        private val download: Download
+        private var download: Download,
     ) {
 
         companion object {
-            //优化内存占用
-            // private val BLOCKING_QUEUE: BlockingQueue<ByteArray> = LinkedBlockingQueue()
 
             /**
              * 重试次数
              */
-            private const val RETRY_COUNT = 5
+            private const val RETRY_COUNT = 2
 
             private val TEMP_DIR = MoviesApplication.context.externalCacheDir!!.path + "/temp"
 
             private val DEFAULT_OUTPUT_DIR =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)!!.path + "/DongYuMovies"
         }
+
+        /**
+         * 下载线程池
+         * 单次10线程下载
+         */
+        private val downloadThreadPool = ThreadPoolExecutor(
+            10, 10,
+            0L, TimeUnit.MILLISECONDS,
+            LinkedBlockingQueue()
+        )
 
         //链接连接超时时间（单位：毫秒）
         private val timeoutMillisecond = 1000
@@ -97,10 +118,17 @@ class M3U8Downloader(
         private val tsTempFile get() = "$TEMP_DIR/$fileName"
 
         //合并后的文件存储目录
-        var outputDir: String = DEFAULT_OUTPUT_DIR
+        private val outputDir: String
+            get() {
+                val groupName = download.groupName
+                if (groupName.isNotEmpty()) {
+                    return "$DEFAULT_OUTPUT_DIR/$groupName"
+                }
+                return DEFAULT_OUTPUT_DIR
+            }
 
         //合并后的视频文件名称
-        var fileName: String = ""
+        private var fileName: String = ""
             get() {
                 if (field.isBlank()) {
                     field = System.currentTimeMillis().toString()
@@ -135,7 +163,7 @@ class M3U8Downloader(
         private var iv = ""
 
         //所有ts片段下载链接
-        private val tsSet: LinkedHashSet<String> = LinkedHashSet()
+        private val tsUrlSet: LinkedHashSet<String> = LinkedHashSet()
 
         //解密后的片段
         private val finishedFiles: MutableSet<File> =
@@ -148,8 +176,11 @@ class M3U8Downloader(
         private var downloadBytes = 0L
 
         //自定义请求头
-        private val requestHeaderMap: Map<String, Any> = HashMap()
+        // private val requestHeaderMap: Map<String, Any> = HashMap()
 
+        /**
+         * 暂停状态
+         */
         private var isPause = false
 
         private var isStop = false
@@ -159,13 +190,15 @@ class M3U8Downloader(
         fun stopDownload() {
             isStop = true
             finishedFiles.clear()
-            tsSet.clear()
+            tsUrlSet.clear()
+            downloadThreadPool.shutdownNow()
+            // 注意，这里会删除文件
+            File(tsTempFile).deleteRecursively()
         }
 
         fun pauseDownload() {
             isPause = true
             download.pause()
-            // lockObj.notify()
         }
 
         fun resumeDownload() {
@@ -178,76 +211,88 @@ class M3U8Downloader(
 
         fun startDownload() {
             try {
-                if (download.name.isEmpty()) {
-                    download.name = fileName
-                } else {
+                val _download =
+                    LitePal.where("url = ?", download.url).limit(1).findFirst<Download>()
+                if (_download != null) {
+                    // 绑定事件监听
+                    _download.listener = download.listener
+                    download = _download
                     fileName = download.name
+                    // 这里未进行判断，可能进行重复下载
+                } else {
+                    if (download.name.isEmpty()) {
+                        download.name = fileName
+                    } else {
+                        fileName = download.name
+                    }
+                    download.downloadPath = "$outputDir/$fileName.mp4"
+                    download.save()
                 }
-                // val groupName = if (download.groupName.isEmpty()) "" else download.groupName + "/"
-                if (download.groupName.isNotEmpty()) {
-                    outputDir += "/" + download.groupName
-                }
-                download.downloadPath = "$outputDir/$fileName.mp4"
+
                 download.updateAt = System.currentTimeMillis()
-                download.save()
+
                 download.prepare()
 
-                val tsUrl = getTsUrl()
-                Log.d(TAG, "tsUrl: $tsUrl")
-                Log.d(TAG, "tsUrls: $tsSet")
-                Log.d(TAG, "key: $key")
+                getTsUrl()
 
                 // 生成一些必须的文件夹
                 generateFile()
 
                 download.start()
 
-                // 对所有ts文件进行遍历多线程下载
-                val taskList = tsSet.mapIndexed { index, ts ->
-                    executorService.submit {
+                tsUrlSet.forEachIndexed { index, ts ->
+                    downloadThreadPool.execute {
                         downloadFile(ts, index)
                     }
                 }
 
-                var now = System.currentTimeMillis()
-                taskList.forEach {
-                    if (isStop) {
-                        it.cancel(true)
-                        return@forEach
-                    }
-                    it.get()
-                    // 这里获取下载状态
-                    val current = System.currentTimeMillis()
-                    if (current - now >= 1000) {
-                        now = current
-                        download.currentByte = downloadBytes
-                        download.update()
-                        Log.i(TAG, "downloadBytes: $downloadBytes Byte")
-                    }
-                }
+                getDownloadStatus()
+                handleCompleteDownload()
+
                 Log.i(TAG, "downloadBytesCompleted: $downloadBytes Byte")
-
-                if (isStop) {
-                    return
-                }
-
-                // finishedCount 不为0则代表成功
-                if (finishedCount != 0) {
-                    download.merge()
-                    mergeTs()
-                    // 删除不需要的临时文件
-                    deleteTempFiles()
-                    download.completed()
-                    Log.i(TAG, "$fileName 合并完成")
-                } else {
-                    Log.e(TAG, "$fileName 下载失败")
-                    throw Throwable("下载失败")
-                }
             } catch (e: Exception) {
                 // 获取文件信息失败
                 Log.e(TAG, e.toString())
                 download.error()
+            } finally {
+                stopDownload()
             }
+        }
+
+        /**
+         * 阻塞获取下载状态
+         */
+        private fun getDownloadStatus() {
+            downloadThreadPool.shutdown()
+            while (!downloadThreadPool.isTerminated && !isStop) {
+                if (!isPause) {
+                    // 一秒更新一次
+                    Thread.sleep(1000)
+                    download.currentByte = downloadBytes
+                    download.progress = finishedCount * 100 / tsUrlSet.size
+                }
+            }
+        }
+
+        @SuppressLint("MissingPermission")
+        @Throws(Exception::class)
+        private fun handleCompleteDownload() {
+            if (isStop) {
+                return
+            }
+            // 可能部分ts会出现下载失败的情况，这里直接进行判断下载数量不为0则为成功
+            if (finishedCount == 0) {
+                Log.e(TAG, "$fileName 下载失败")
+                throw Exception("下载失败")
+            }
+            download.progress = 100
+            // finishedCount 不为0则代表成功
+            download.merge()
+            mergeTs()
+            // 删除不需要的临时文件
+            deleteTempFiles()
+            download.completed()
+            Log.i(TAG, "$fileName 合并完成")
         }
 
         private fun generateFile() {
@@ -266,7 +311,7 @@ class M3U8Downloader(
          */
         private fun deleteTempFiles() {
             File(tsTempFile).delete()
-            tsSet.clear()
+            tsUrlSet.clear()
             finishedFiles.clear()
         }
 
@@ -304,24 +349,18 @@ class M3U8Downloader(
 
             //xy为未解密的ts片段，如果存在，则删除
             val unDecryptFile = File("$tsTempFile/$index.ts")
-            Log.i(TAG, "tsFile: ${Thread.currentThread().name} $index, url: $tsUrl")
             if (unDecryptFile.exists()) unDecryptFile.delete()
             var outputStream: OutputStream? = null
-            // var decryptFileInputStream: InputStream? = null
             var decryptFileOutStream: FileOutputStream? = null
-            val bytes = ByteArray(40960)/*try {
-                BLOCKING_QUEUE.take() ?: ByteArray(40960)
-            } catch (ignored: Exception) {
-                ByteArray(40960)
-            }*/
+            val bytes = ByteArray(40960)
 
             //重试次数判断
-            while (count <= RETRY_COUNT) {
-                if (count != 1) {
-                    // 延迟两秒等待
-                    Thread.sleep(2000)
-                }
+            while (!isStop && !isPause && count <= RETRY_COUNT) {
                 try {
+                    if (count != 1) {
+                        // 延迟两秒等待
+                        Thread.sleep(2000)
+                    }
                     //模拟http请求获取ts片段文件
                     httpURLConnection = createHttpURLConnection(tsUrl)
                     val inputStream = httpURLConnection.inputStream
@@ -368,25 +407,6 @@ class M3U8Downloader(
                     }
 
                     inputStream.close()
-                    // 进行解析文件
-                    /*decryptFileInputStream = FileInputStream(unDecryptFile)
-                    val available = decryptFileInputStream.available()
-                    // 检查字节数组容量
-                    if (bytes.size < available) bytes = ByteArray(available)
-                    // 对已下载的文件读取到输入流中
-                    decryptFileInputStream.read(bytes)
-                    // 解密文件对象
-                    val decryptFile = File("$TEMP_DIR/$index.xyz")
-                    decryptFileOutStream = FileOutputStream(decryptFile)
-                    // 开始解密ts片段，这里我们把ts后缀改为了xyz，改不改都一样
-                    // 获取解密后的字节数组文件
-                    val decryptBytes = decrypt(bytes, available, key, iv, method)
-                    // 如果为空，说明不需要解密
-                    if (decryptBytes == null) {
-                        decryptFileOutStream.write(bytes, 0, available)
-                    } else {
-                        decryptFileOutStream.write(decryptBytes)
-                    }*/
                     finishedFiles.add(unDecryptFile)
                     break
                 } catch (e: Exception) {
@@ -395,7 +415,7 @@ class M3U8Downloader(
                         // 文件解密失败了
                         break
                     }
-                    if (e is InterruptedIOException) {
+                    if (e is InterruptedException) {
                         break
                     }
                     e.printStackTrace()
@@ -414,6 +434,9 @@ class M3U8Downloader(
                     }
                     httpURLConnection?.disconnect()
                 }
+            }
+            if (isStop || isPause) {
+                return
             }
             if (count <= RETRY_COUNT) {
                 finishedCount++
@@ -441,6 +464,7 @@ class M3U8Downloader(
          *
          * @return 链接是否被加密，null为非加密
          */
+        @Throws(Exception::class)
         private fun getTsUrl(): String? {
             val content: StringBuilder = getUrlContent(url, false)
             //判断是否是m3u8链接
@@ -484,7 +508,8 @@ class M3U8Downloader(
          * @param content 内容，如果有密钥，则此字段可以为空
          * @return ts是否需要解密，null为不解密
          */
-        private fun getKey(url: String, content: java.lang.StringBuilder?): String? {
+        @Throws(Exception::class)
+        private fun getKey(url: String, content: StringBuilder?): String? {
             val urlContent =
                 if (content.isNullOrEmpty()) getUrlContent(
                     url,
@@ -522,7 +547,7 @@ class M3U8Downloader(
                 val s = split[i]
                 if (s.contains("#EXTINF")) {
                     val s1 = split[++i]
-                    tsSet.add(if (s1.isUrl()) s1 else mergeUrl(relativeUrl, s1))
+                    tsUrlSet.add(if (s1.isUrl()) s1 else mergeUrl(relativeUrl, s1))
                 }
                 i++
             }
@@ -557,9 +582,9 @@ class M3U8Downloader(
                     httpURLConnection.readTimeout = timeoutMillisecond
                     httpURLConnection.useCaches = false
                     httpURLConnection.doInput = true
-                    for ((key, value) in requestHeaderMap.entries) {
+                    /*for ((key, value) in requestHeaderMap.entries) {
                         httpURLConnection.addRequestProperty(key, value.toString())
-                    }
+                    }*/
                     var line: String?
                     val inputStream = httpURLConnection.inputStream
                     val bufferedReader = BufferedReader(InputStreamReader(inputStream))
@@ -581,9 +606,9 @@ class M3U8Downloader(
                     // Log.i(TAG, content.toString())
                     break
                 } catch (e: Exception) {
-                    Log.d(TAG, "第" + count + "获取链接重试！\t" + urls)
+                    Log.e(TAG, "第" + count + "获取链接重试！\t" + urls)
                     count++
-                    //e.printStackTrace();
+                    e.printStackTrace();
                 } finally {
                     httpURLConnection?.disconnect()
                 }

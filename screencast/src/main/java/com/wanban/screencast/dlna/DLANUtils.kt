@@ -24,7 +24,7 @@ import org.fourthline.cling.model.action.ActionInvocation
 import org.fourthline.cling.model.meta.Service
 import java.lang.ref.WeakReference
 
-class DLANUtils: BaseScreenCastUtils() {
+class DLANUtils : BaseScreenCastUtils() {
 
     private var mDLNAPlayer: DLNAPlayer? = null
     private lateinit var weakReference: WeakReference<Context>
@@ -33,12 +33,14 @@ class DLANUtils: BaseScreenCastUtils() {
 
 
     private val progressHandler by lazy { MyProgressHandler(mDLNAPlayer) }
+
     companion object {
-        class MyProgressHandler(var mDLNAPlayer: DLNAPlayer?): Handler(Looper.getMainLooper()), DLNAControlCallback{
+        class MyProgressHandler(var mDLNAPlayer: DLNAPlayer?) : Handler(Looper.getMainLooper()),
+            DLNAControlCallback {
             private var progressUpdateListener: OnVideoProgressUpdateListener? = null
             override fun handleMessage(msg: Message) {
                 super.handleMessage(msg)
-                when (msg.what){
+                when (msg.what) {
                     1 -> {
                         mDLNAPlayer?.getPositionInfo(this)
                         sendProgressMsg(progressUpdateListener)
@@ -46,7 +48,7 @@ class DLANUtils: BaseScreenCastUtils() {
                 }
             }
 
-            fun sendProgressMsg(listener: OnVideoProgressUpdateListener?){
+            fun sendProgressMsg(listener: OnVideoProgressUpdateListener?) {
                 progressUpdateListener = listener
                 removeMessages(1)
                 sendEmptyMessageDelayed(1, 1000)
@@ -56,40 +58,37 @@ class DLANUtils: BaseScreenCastUtils() {
                 removeCallbacksAndMessages(null)
             }
 
-            override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
-                val time = invocation?.getOutput("AbsTime")?.toString()?:"0:00:00"
-                Log.e("ScreenCast", "DLNA -> time: " + time)
-                // 将String的time转成Long
-                if (!TextUtils.isEmpty(time)) {
-                    val timeArray = time.split(":")
+            private fun String.getTime(): Long {
+                if (!TextUtils.isEmpty(this)) {
+                    val timeArray = this.split(":")
                     var currentPosition = 0L
                     if (timeArray.size >= 3) {
                         // 秒
                         val s = timeArray[2]
-                        val sFirst = s.subSequence(0,1).toString().toInt()
+                        val sFirst = s.subSequence(0, 1).toString().toInt()
                         if (sFirst > 0) {
                             currentPosition = sFirst * 10L
                         }
-                        val sSecond = s.subSequence(1,2).toString().toInt()
+                        val sSecond = s.subSequence(1, 2).toString().toInt()
                         currentPosition += sSecond
 
                         // 分
                         val m = timeArray[1]
-                        val mFirst = m.subSequence(0,1).toString().toInt()
+                        val mFirst = m.subSequence(0, 1).toString().toInt()
                         if (mFirst > 0) {
                             currentPosition = mFirst * 10 * 60L
                         }
-                        val mSecond = m.subSequence(1,2).toString().toInt()
+                        val mSecond = m.subSequence(1, 2).toString().toInt()
                         currentPosition += mSecond * 60L
 
                         // 时
                         val h = timeArray[0]
                         if (h.length >= 2) {
-                            val hFirst = h.subSequence(0,1).toString().toInt()
+                            val hFirst = h.subSequence(0, 1).toString().toInt()
                             if (hFirst > 0) {
                                 currentPosition = hFirst * 10 * 60L
                             }
-                            val hSecond = h.subSequence(1,2).toString().toInt()
+                            val hSecond = h.subSequence(1, 2).toString().toInt()
                             currentPosition += hSecond * 10 * 60 * 60L
                         } else {
                             val hFirst = h.toInt()
@@ -98,32 +97,48 @@ class DLANUtils: BaseScreenCastUtils() {
                     } else {
                         // 秒
                         val s = timeArray[1]
-                        val sFirst = s.subSequence(0,1).toString().toInt()
+                        val sFirst = s.subSequence(0, 1).toString().toInt()
                         if (sFirst > 0) {
                             currentPosition = sFirst * 10L
                         }
-                        val sSecond = s.subSequence(1,2).toString().toInt()
+                        val sSecond = s.subSequence(1, 2).toString().toInt()
                         currentPosition += sSecond
 
                         // 分
                         val m = timeArray[0]
-                        val mFirst = m.subSequence(0,1).toString().toInt()
+                        val mFirst = m.subSequence(0, 1).toString().toInt()
                         if (mFirst > 0) {
                             currentPosition = mFirst * 10 * 60L
                         }
-                        val mSecond = m.subSequence(1,2).toString().toInt()
+                        val mSecond = m.subSequence(1, 2).toString().toInt()
                         currentPosition += mSecond * 60L
                     }
-                    progressUpdateListener?.onVideoProgressUpdate(currentPosition * 1000)
+                    return currentPosition
                 }
+                return 0
+            }
+
+            override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
+                val time = invocation?.getOutput("AbsTime")?.toString() ?: "0:00:00"
+                // Log.e("ScreenCast", "DLNA -> time: " + time)
+                val duration = invocation?.getOutput("TrackDuration")?.toString() ?: "00:00:00"
+                // 将String的time转成Long
+
+                progressUpdateListener?.onVideoProgressUpdate(time.getTime() * 1000, duration.getTime() * 1000)
+            }
+
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
 
             }
 
-            override fun onReceived(invocation: ActionInvocation<out Service<*, *>>?, vararg extra: Any?) {
-
-            }
-
-            override fun onFailure(invocation: ActionInvocation<out Service<*, *>>?, errorCode: Int, errorMsg: String?) {
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
 
             }
         }
@@ -142,11 +157,12 @@ class DLANUtils: BaseScreenCastUtils() {
     }
 
 
-    private inner class MyDLNARegistryListener: DLNARegistryListener() {
+    private inner class MyDLNARegistryListener : DLNARegistryListener() {
         override fun onDeviceChanged(deviceInfoList: MutableList<DeviceInfo>?) {
             val targetDeviceList = ArrayList<DeviceModel>()
             deviceList.clear()
-            val list = deviceInfoList?.filter { "urn:schemas-upnp-org:device:MediaRenderer:1" == it.device?.type?.toString() }
+            val list =
+                deviceInfoList?.filter { "urn:schemas-upnp-org:device:MediaRenderer:1" == it.device?.type?.toString() }
             if (list.isNullOrEmpty()) {
                 searchListener?.onSearchedDevices(targetDeviceList)
                 return
@@ -189,7 +205,7 @@ class DLANUtils: BaseScreenCastUtils() {
 
     override fun connectDevice(deviceName: String, listener: OnDeviceConnectListener) {
         super.connectDevice(deviceName, listener)
-        val deviceInfo = deviceList.firstOrNull { it.name == deviceName }?:return
+        val deviceInfo = deviceList.firstOrNull { it.name == deviceName } ?: return
         if (mDLNAPlayer == null) {
             val context = weakReference.get() ?: return
             mDLNAPlayer = DLNAPlayer(context)
@@ -209,7 +225,6 @@ class DLANUtils: BaseScreenCastUtils() {
     }
 
 
-
     override fun play(url: String, title: String?, listener: OnVideoProgressUpdateListener) {
         this.progressListener = listener
         val mediaInfo = MediaInfo()
@@ -224,10 +239,17 @@ class DLANUtils: BaseScreenCastUtils() {
                 progressHandler.sendProgressMsg(listener)
             }
 
-            override fun onReceived(invocation: ActionInvocation<out Service<*, *>>?, vararg extra: Any?) {
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
             }
 
-            override fun onFailure(invocation: ActionInvocation<out Service<*, *>>?, errorCode: Int, errorMsg: String?) {
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
             }
         })
     }
@@ -238,10 +260,17 @@ class DLANUtils: BaseScreenCastUtils() {
             override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
             }
 
-            override fun onReceived(invocation: ActionInvocation<out Service<*, *>>?, vararg extra: Any?) {
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
             }
 
-            override fun onFailure(invocation: ActionInvocation<out Service<*, *>>?, errorCode: Int, errorMsg: String?) {
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
             }
         })
     }
@@ -259,10 +288,17 @@ class DLANUtils: BaseScreenCastUtils() {
             override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
             }
 
-            override fun onReceived(invocation: ActionInvocation<out Service<*, *>>?, vararg extra: Any?) {
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
             }
 
-            override fun onFailure(invocation: ActionInvocation<out Service<*, *>>?, errorCode: Int, errorMsg: String?) {
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
             }
         })
 
@@ -311,10 +347,17 @@ class DLANUtils: BaseScreenCastUtils() {
             override fun onSuccess(invocation: ActionInvocation<out Service<*, *>>?) {
             }
 
-            override fun onReceived(invocation: ActionInvocation<out Service<*, *>>?, vararg extra: Any?) {
+            override fun onReceived(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                vararg extra: Any?
+            ) {
             }
 
-            override fun onFailure(invocation: ActionInvocation<out Service<*, *>>?, errorCode: Int, errorMsg: String?) {
+            override fun onFailure(
+                invocation: ActionInvocation<out Service<*, *>>?,
+                errorCode: Int,
+                errorMsg: String?
+            ) {
 
             }
         })

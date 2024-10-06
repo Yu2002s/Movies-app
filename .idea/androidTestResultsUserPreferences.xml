@@ -16,6 +16,20 @@
             </AndroidTestResultsTableState>
           </value>
         </entry>
+        <entry key="-1994834023">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="Pixel_6_Pro_API_34" value="120" />
+                  <entry key="Tests" value="360" />
+                  <entry key="Xiaomi 22041211AC" value="120" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
         <entry key="-1854400196">
           <value>
             <AndroidTestResultsTableState>
@@ -43,6 +57,19 @@
             </AndroidTestResultsTableState>
           </value>
         </entry>
+        <entry key="-464212086">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="Tests" value="360" />
+                  <entry key="Xiaomi 22041211AC" value="120" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
         <entry key="600472434">
           <value>
             <AndroidTestResultsTableState>
@@ -51,6 +78,19 @@
                   <entry key="Duration" value="108" />
                   <entry key="Pixel_3a_API_34_extension_level_7_x86_64" value="138" />
                   <entry key="Tests" value="378" />
+                </map>
+              </option>
+            </AndroidTestResultsTableState>
+          </value>
+        </entry>
+        <entry key="779467297">
+          <value>
+            <AndroidTestResultsTableState>
+              <option name="preferredColumnWidths">
+                <map>
+                  <entry key="Duration" value="90" />
+                  <entry key="Pixel_6_Pro_API_34" value="120" />
+                  <entry key="Tests" value="360" />
                 </map>
               </option>
             </AndroidTestResultsTableState>

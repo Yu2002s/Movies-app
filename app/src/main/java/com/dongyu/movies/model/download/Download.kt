@@ -1,6 +1,8 @@
 package com.dongyu.movies.model.download
 
 import com.dongyu.movies.download.DownloadListener
+import com.drake.brv.annotaion.ItemOrientation
+import com.drake.brv.item.ItemSwipe
 import org.litepal.annotation.Column
 import org.litepal.crud.LitePalSupport
 

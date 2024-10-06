@@ -29,14 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <Button
-        android:visibility="gone"
-        android:id="@+id/next"
-        android:text="播放下一集"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <!--<LinearLayout
+    <LinearLayout
         android:padding="10dp"
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -51,6 +44,7 @@
         <SeekBar
             android:id="@+id/progress"
             android:progress="0"
+            android:max="0"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"/>
@@ -61,10 +55,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-    </LinearLayout>-->
+    </LinearLayout>
 
     <TextView
-        android:text="提示：请确保手机和电视处于同一网络下，且电视已打开投屏功能，具体教程可查看百度"
+        android:text="提示：请确保手机和电视处于同一网络下，且电视已打开投屏功能，具体教程可查看百度。点击设备即可连接"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

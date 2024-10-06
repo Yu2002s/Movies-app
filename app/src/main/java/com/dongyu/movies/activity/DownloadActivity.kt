@@ -10,7 +10,6 @@ import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +25,6 @@ import com.dongyu.movies.model.download.DownloadStatus
 import com.dongyu.movies.model.movie.VideoType
 import com.dongyu.movies.utils.formatBytes
 import com.dongyu.movies.utils.showToast
-import com.dongyu.movies.utils.toFileUri
 import com.drake.brv.utils.models
 import com.drake.brv.utils.mutable
 import com.drake.brv.utils.setup
@@ -34,9 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.litepal.LitePal
-import org.litepal.extension.count
 import org.litepal.extension.find
-import org.litepal.extension.findAll
 
 class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
 
@@ -55,7 +51,7 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        bindService(Intent(this, DownloadService::class.java), this, Context.BIND_ABOVE_CLIENT)
+        bindService(Intent(this, DownloadService::class.java), this, Context.BIND_AUTO_CREATE)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -64,14 +60,14 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
             addType<Download>(R.layout.item_list_download)
             onCreate {
                 getBinding<ItemListDownloadBinding>().sw.setOnClickListener {
-                    downloadService.resumeOrStopDownload(getModel())
+                    downloadService.resumeOrPauseDownload(getModel())
                 }
             }
             onBind {
                 val model = getModel<Download>()
                 getBinding<ItemListDownloadBinding>().apply {
                     name.text = model.name
-                    status.text = model.statusStr + " " + formatBytes(model.currentByte)
+                    status.text = model.statusStr + " " + formatBytes(model.currentByte) + " " + model.progress + "%"
                     sw.setImageResource(
                         if (model.status == DownloadStatus.DOWNLOADING)
                             R.drawable.baseline_pause_circle_outline_24
@@ -84,7 +80,7 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
             R.id.item.onClick {
                 val model = getModel<Download>()
                 if (model.status != DownloadStatus.COMPLETED) {
-                    downloadService.resumeOrStopDownload(model)
+                    downloadService.resumeOrPauseDownload(model)
                     return@onClick
                 }
                 // 打开播放
@@ -103,7 +99,7 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
             lifecycleScope.launch {
                 val offset = (index - 1) * 10
                 val downloads = withContext(Dispatchers.IO) {
-                    LitePal.offset(offset).limit(10).find<Download>().onEach { download ->
+                    LitePal.offset(offset).limit(10).order("updateAt desc").find<Download>().onEach { download ->
                         download.status = downloadService.getDownloadStatus(download)
                     }
                 }
@@ -139,7 +135,6 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         _downloadService = (service as DownloadService.DownloadBinder).getService()
         _downloadService?.let {
-            Log.d(TAG, "setDownloadListener $it")
             it.downloadListener = this
             binding.rvl.showLoading()
         }

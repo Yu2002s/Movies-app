@@ -1,14 +1,22 @@
 package com.dongyu.movies
 
 import android.os.Build
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.dongyu.movies.utils.Checker
-
+import androidx.test.platform.app.InstrumentationRegistry
+import com.dongyu.movies.network.Repository
+import com.dongyu.movies.parser.BaseParser
+import com.dongyu.movies.utils.AESUtils
+import com.dongyu.movies.utils.Md5Utils
+import com.dongyu.movies.utils.base64ToHex
+import com.dongyu.movies.utils.toHexString
+import okhttp3.Request
+import org.json.JSONObject
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.ByteArrayOutputStream
+import java.util.zip.Inflater
 
-import org.junit.Assert.*
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -30,5 +38,63 @@ class ExampleInstrumentedTest {
         println(Build.CPU_ABI)
         // println(Checker.getAppSignatureMD5())
         // println(Checker.getAppSignatureMD5())
+    }
+
+    @Test
+    fun testParse() {
+        val pid = 183613
+        val time = System.currentTimeMillis()
+        val encryptStr = "$pid-$time"
+        val key = Md5Utils.md5Hex(encryptStr)!!.substring(0, 16).toHexString()
+        val encrypt = AESUtils.encrypt("AES/ECB/PkCS5Padding", key, encryptStr)
+
+        val sign = encrypt?.base64ToHex()
+
+        println("sign: $sign, time: $time , key: $key")
+
+        val okhttp = Repository.okHttpClient
+        val request = Request.Builder()
+            .url("https://www.yjys.top/lines?t=${time}&sg=${sign}&pid=${pid}")
+            .header("User-Agent", BaseParser.USER_AGENT)
+            .header("Accept", BaseParser.ACCEPT)
+            .header("Accept-Language", BaseParser.ACCEPT_LANGUAGE)
+            .get()
+            .build()
+        val response = okhttp.newCall(request).execute()
+        val responseBody = response.body()!!.string()
+        println("body: $responseBody")
+        var url = JSONObject(responseBody).getJSONObject("data").getString("m3u8")
+
+        url = url.replace("bde4.cc", "yjys.top")
+
+        println(url)
+
+        val request2 = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        val response2 = okhttp.newCall(request2).execute()
+
+        println("response: $response2")
+
+        val bytes = response2.body()!!.byteStream().readBytes()
+        val compressBytes = bytes.sliceArray(3354..bytes.size)
+
+        decompress(compressBytes)
+    }
+
+    fun decompress(data: ByteArray): ByteArray {
+        val inflater = Inflater();
+        inflater.setInput(data);
+
+        val outputStream =  ByteArrayOutputStream(data.size);
+        val buffer = ByteArray(1024)
+        while (!inflater.finished()) {
+            val count = inflater.inflate(buffer);
+            outputStream.write(buffer, 0, count);
+        }
+        outputStream.close();
+        return outputStream.toByteArray();
     }
 }

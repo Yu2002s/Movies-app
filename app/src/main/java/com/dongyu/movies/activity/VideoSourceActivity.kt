@@ -70,7 +70,7 @@ class VideoSourceActivity : BaseActivity(), ServiceConnection, MenuProvider {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        bindService(Intent(this, DownloadService::class.java), this, Context.BIND_ABOVE_CLIENT)
+        bindService(Intent(this, DownloadService::class.java), this, Context.BIND_AUTO_CREATE)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

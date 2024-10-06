@@ -9,12 +9,12 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.BatteryManager;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,24 +32,30 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.dongyu.movies.event.OnVideoErrorBtnClickListener;
-import com.dongyu.movies.utils.UtilsKt;
-import com.dongyu.movies.utils.player.BiliDanmukuParser;
-import com.dongyu.movies.utils.player.MyDanmakuLoader;
 import com.dongyu.movies.R;
 import com.dongyu.movies.config.SPConfig;
 import com.dongyu.movies.databinding.LayoutControlBottomBinding;
 import com.dongyu.movies.databinding.LayoutControlHeaderBinding;
 import com.dongyu.movies.databinding.LayoutControlMiddleBinding;
+import com.dongyu.movies.databinding.LayoutScreenCastBinding;
 import com.dongyu.movies.databinding.LayoutSmallProgressBinding;
 import com.dongyu.movies.databinding.LayoutStatusBarBinding;
 import com.dongyu.movies.databinding.LayoutToastBinding;
 import com.dongyu.movies.databinding.LayoutVideoErrorBinding;
+import com.dongyu.movies.dialog.BaseAppCompatDialog;
 import com.dongyu.movies.dialog.ScreenProjectionDialog;
+import com.dongyu.movies.event.OnScreencastListener;
+import com.dongyu.movies.event.OnSourceItemChangeListener;
+import com.dongyu.movies.event.OnVideoErrorBtnClickListener;
+import com.dongyu.movies.model.movie.VideoSource;
 import com.dongyu.movies.utils.DisplayUtilsKt;
 import com.dongyu.movies.utils.IOKt;
 import com.dongyu.movies.utils.SpUtils;
 import com.dongyu.movies.utils.TimeUtilsKt;
+import com.dongyu.movies.utils.UtilsKt;
+import com.dongyu.movies.utils.player.BiliDanmukuParser;
+import com.dongyu.movies.utils.player.MyDanmakuLoader;
+import com.dongyu.movies.view.VideoSourceView;
 import com.dongyu.movies.view.player.base.BasePlayer;
 import com.dongyu.movies.view.player.base.PlayerStateListener;
 
@@ -78,6 +84,7 @@ import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.ui.widget.DanmakuTouchHelper;
 import master.flame.danmaku.ui.widget.DanmakuView;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class DongYuPlayer extends BasePlayer {
 
@@ -94,6 +101,8 @@ public class DongYuPlayer extends BasePlayer {
     private LayoutControlMiddleBinding middleBinding;
 
     private LayoutVideoErrorBinding errorBinding;
+
+    private LayoutScreenCastBinding screenCastBinding;
 
     private TextView toastTextView;
 
@@ -121,6 +130,8 @@ public class DongYuPlayer extends BasePlayer {
 
     private OnVideoErrorBtnClickListener errorBtnClickListener;
 
+    private OnSourceItemChangeListener sourceItemChangeListener;
+
     private DanmakuView mDanmakuView;
 
     private DanmakuContext mDanmakuContext;
@@ -128,6 +139,26 @@ public class DongYuPlayer extends BasePlayer {
     private BaseDanmakuParser mBaseDanmakuParser;
 
     private final List<String> mDanmakuUrlList = new ArrayList<>();
+
+    /**
+     * 视频源列表
+     */
+    private List<VideoSource> videoSources;
+
+    /**
+     * 当前选择的播放源项
+     */
+    private VideoSource.Item currentSourceItem;
+
+    /**
+     * 是否开启投屏
+     */
+    private boolean isScreencast = false;
+
+    /**
+     * 投屏地址
+     */
+    private String screencastUrl;
 
     private ScreenProjectionDialog screenProjectionDialog;
 
@@ -137,6 +168,19 @@ public class DongYuPlayer extends BasePlayer {
 
     public void setErrorBtnClickListener(OnVideoErrorBtnClickListener errorBtnClickListener) {
         this.errorBtnClickListener = errorBtnClickListener;
+    }
+
+    /**
+     * 监听选集切换事件
+     *
+     * @param sourceItemChangeListener 回调接口
+     */
+    public void setSourceItemChangeListener(OnSourceItemChangeListener sourceItemChangeListener) {
+        this.sourceItemChangeListener = sourceItemChangeListener;
+    }
+
+    public void setCurrentSourceItem(VideoSource.Item currentSourceItem) {
+        this.currentSourceItem = currentSourceItem;
     }
 
     public DongYuPlayer(@NonNull Context context) {
@@ -362,8 +406,29 @@ public class DongYuPlayer extends BasePlayer {
         }
     }
 
+    /**
+     * 设置视频源，用于切换选集功能
+     *
+     * @param videoSources 视频源列表
+     */
+    public void setVideoSources(List<VideoSource> videoSources) {
+        this.videoSources = videoSources;
+    }
+
+    /**
+     * 是否开启投屏
+     *
+     * @return 投屏状态
+     */
+    public boolean isScreencast() {
+        return isScreencast;
+    }
+
     @Override
     public void resume() {
+        if (isScreencast) {
+            return;
+        }
         super.resume();
         if (mDanmakuView != null) {
             mDanmakuView.resume();
@@ -382,6 +447,9 @@ public class DongYuPlayer extends BasePlayer {
     @Override
     public void stop() {
         super.stop();
+        if (isScreencast) {
+            screenProjectionDialog.stop();
+        }
         if (mDanmakuView != null) {
             mDanmakuView.release();
         }
@@ -413,12 +481,29 @@ public class DongYuPlayer extends BasePlayer {
                 } else {
                     errorBinding.btnReload.setVisibility(VISIBLE);
                     errorBinding.btnSwitchSource.setVisibility(VISIBLE);
-                    errorBinding.btnReload.setOnClickListener(v -> errorBtnClickListener.onReloadClick());
+                    errorBinding.btnReload.setOnClickListener(v -> {
+                        if (currentSourceItem == null) {
+                            return;
+                        }
+                        errorBtnClickListener.onReloadClick(currentSourceItem);
+                    });
                     errorBinding.btnSwitchSource.setOnClickListener(v -> errorBtnClickListener.onSwitchSourceClick());
                     errorBinding.btnRefresh.setOnClickListener(v -> errorBtnClickListener.onRefreshClick());
                 }
             }
             return errorBinding.getRoot();
+        } else if (isScreencast) {
+            if (screenCastBinding == null) {
+                screenCastBinding = LayoutScreenCastBinding
+                        .inflate(LayoutInflater.from(getContext()), maskLayout, false);
+                screenCastBinding.exit.setOnClickListener(v -> {
+                    screenProjectionDialog.stop();
+                    isScreencast = false;
+                    hideMaskView();
+                    resume();
+                });
+            }
+            return screenCastBinding.getRoot();
         }
         return super.getMaskView(maskLayout);
     }
@@ -556,21 +641,85 @@ public class DongYuPlayer extends BasePlayer {
         });
 
         headerBinding.videoProjection.setOnClickListener(v -> {
-            String url = getIjkMediaPlayer().getDataSource();
-            if (TextUtils.isEmpty(url)) {
-                UtilsKt.showToast("当前视频未加载成功", 2000);
-                return;
-            }
             if (screenProjectionDialog == null) {
+                IjkMediaPlayer ijkMediaPlayer = getIjkMediaPlayer();
+                if (ijkMediaPlayer == null) {
+                    Log.d(TAG, "player is null");
+                    return;
+                }
+                String url = ijkMediaPlayer.getDataSource();
+                if (TextUtils.isEmpty(url)) {
+                    UtilsKt.showToast("当前视频未加载成功", 2000);
+                    return;
+                }
+                screencastUrl = url;
                 screenProjectionDialog = new ScreenProjectionDialog(v.getContext())
                         .setTitle(getTitle().toString())
-                        .setUrl(url)
-                        .setDuration(getEndProgress());
-                // screenProjectionDialog.setNextSelectionClickListener(v1 -> bottomBinding.playNext.callOnClick());
+                        .setUrl(url);
+                screenProjectionDialog.setScreencastListener(new OnScreencastListener() {
+                    @Override
+                    public void onConnected() {
+                        pause();
+                        isScreencast = true;
+                        showMaskView();
+                    }
+
+                    @Override
+                    public void onProgress(Long current, Long duration) {
+
+                    }
+
+                    @Override
+                    public void onDisconnect() {
+                        isScreencast = false;
+                        hideMaskView();
+                    }
+                });
             }
-            // 暂停手机上的视频播放
-            pause();
             screenProjectionDialog.show();
+        });
+
+        // 选集切换功能
+        bottomBinding.selections.setOnClickListener(v -> {
+            if (videoSources == null || currentSourceItem == null) {
+                return;
+            }
+            VideoSourceView videoSourceView = new VideoSourceView(getContext());
+            videoSourceView.submitList(videoSources, (item, position) -> {
+                if (sourceItemChangeListener != null) {
+                    sourceItemChangeListener.onSourceItemChanged(item, position);
+                }
+            }).setSelection(currentSourceItem);
+            // 选集对话框
+            BaseAppCompatDialog dialog = new BaseAppCompatDialog(getContext());
+            dialog.setContentView(videoSourceView);
+            dialog.show();
+        });
+
+        // 播放下一集
+        bottomBinding.playNext.setOnClickListener(v -> {
+            if (currentSourceItem == null || sourceItemChangeListener == null) {
+                return;
+            }
+            String sourceId = currentSourceItem.getParam().getSourceId();
+            for (int i = 0; i < videoSources.size(); i++) {
+                VideoSource source = videoSources.get(i);
+                if (sourceId.equals(source.getId())) {
+                    int index = source.getItems().indexOf(currentSourceItem);
+                    if (index == -1) {
+                        return;
+                    }
+                    if (++index >= source.getItems().size()) {
+                        UtilsKt.showToast("已经是最后一集了", 1000);
+                        // 最后一集
+                        return;
+                    }
+                    VideoSource.Item item = source.getItems().get(index);
+                    setCurrentSourceItem(item);
+                    sourceItemChangeListener.onSourceItemChanged(item, index);
+                    break;
+                }
+            }
         });
     }
 
@@ -694,12 +843,12 @@ public class DongYuPlayer extends BasePlayer {
         if (!isShowController() && isFullScreen()) {
             boolean isShowSmallProgressBar = Boolean.TRUE
                     .equals(SpUtils.INSTANCE.getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_SMALL_PROGRESS, false));
-             if (!isShowSmallProgressBar) {
-                 if (smallProgressBar != null) {
-                     smallProgressBar.setVisibility(GONE);
-                 }
-                 return;
-             }
+            if (!isShowSmallProgressBar) {
+                if (smallProgressBar != null) {
+                    smallProgressBar.setVisibility(GONE);
+                }
+                return;
+            }
             if (smallProgressBar == null) {
                 smallProgressBar = LayoutSmallProgressBinding
                         .inflate(LayoutInflater.from(getContext()), this, false).getRoot();
@@ -995,8 +1144,20 @@ public class DongYuPlayer extends BasePlayer {
         hideMessage();
     }
 
+    /**
+     * 重写播放方法
+     *
+     * @param url 播放地址
+     * @return 状态
+     */
     @Override
     public boolean play(String url) {
+        // 如果正在投屏
+        if (isScreencast) {
+            screenProjectionDialog.play(url, getTitle().toString());
+            showMaskView();
+            return false;
+        }
         return super.play(url);
     }
 

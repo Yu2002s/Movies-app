@@ -79,7 +79,7 @@ object Repository {
     private const val API_HOST_DEBUG = "http://192.168.0.104"
     private const val API_HOST_RELEASE = "http://movies.jdynb.xyz"
 
-    private val BASE_URL = API_HOST_DEBUG
+    private val BASE_URL = API_HOST_RELEASE
 //    if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
 
     private const val SP_USER = "user"
