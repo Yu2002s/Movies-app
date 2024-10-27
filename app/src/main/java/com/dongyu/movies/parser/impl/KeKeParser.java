@@ -12,10 +12,12 @@ import com.dongyu.movies.model.home.NavItem;
 import com.dongyu.movies.model.movie.BaseMovieItem;
 import com.dongyu.movies.model.movie.MovieDetail;
 import com.dongyu.movies.model.movie.MovieItem;
+import com.dongyu.movies.model.movie.MovieVideo;
 import com.dongyu.movies.model.movie.VideoSource;
 import com.dongyu.movies.model.page.PageResult;
 import com.dongyu.movies.model.parser.ParserResult;
 import com.dongyu.movies.model.parser.PlayParam;
+import com.dongyu.movies.model.search.SearchData;
 import com.dongyu.movies.parser.ParserList;
 import com.dongyu.movies.parser.SimpleParser;
 
@@ -30,7 +32,6 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -196,7 +197,7 @@ public class KeKeParser extends SimpleParser {
     }
 
     @Override
-    public ParserResult<PageResult<MovieItem>> parseSearchList(Document document) {
+    public ParserResult<SearchData> parseSearchList(Document document) {
         PageResult<MovieItem> pageResult = new PageResult<>();
 
         Element main = document.selectFirst(".t-p .t-p-main .main");
@@ -241,11 +242,11 @@ public class KeKeParser extends SimpleParser {
             items.add(item);
         }
 
-        return ParserResult.success(pageResult);
+        return ParserResult.success(new SearchData(pageResult, null));
     }
 
     @Override
-    public ParserResult<String> parseVideo(Document document) {
+    public ParserResult<MovieVideo> parseVideo(Document document) {
         Elements scripts = document.select("script");
 
         Element script = requireNonNull(scripts.get(scripts.size() - 2));
@@ -254,7 +255,8 @@ public class KeKeParser extends SimpleParser {
         if (matcher.find()) {
             String encryptUrl = matcher.group(1);
             String decryptVideoUrl = decryptVideoUrl(encryptUrl);
-            return ParserResult.success(decryptVideoUrl);
+            assert decryptVideoUrl != null;
+            return ParserResult.success(new MovieVideo(decryptVideoUrl));
         }
         return ParserResult.error("解析播放地址失败");
     }

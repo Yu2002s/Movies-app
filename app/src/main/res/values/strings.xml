@@ -41,6 +41,7 @@
     <string name="play_complete">已看完</string>
     <string name="banner_img">轮播图片</string>
     <string name="play_route">播放线路</string>
+    <string name="play_tips">首次加载可能较慢，如播放频繁卡顿或播放失败请尝试切换线路或换源，不要相信视频内的广告</string>
 
     <!-- loading -->
     <string name="error_text">%s，点击刷新</string>
@@ -55,7 +56,7 @@
 
     <!-- 界面状态 -->
     <string name="empty">空空如也</string>
-    <string name="error">加载失败，可能网络问题或服务器维护中，请尝试点击刷新</string>
+    <string name="error">加载失败，可能网络问题或服务器维护中，请尝试点击刷新，如多次失败请切换线路或换源</string>
     <string name="reload">重载</string>
     <string name="switch_source">换源</string>
     <string name="nav_mine">我的</string>

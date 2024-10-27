@@ -21,7 +21,7 @@ class MovieSourceDialog(context: AppCompatActivity, private val callback: (() ->
     init {
         progressDialog.setMessage("正在获取线路中...请稍后")
         val dialog = progressDialog.show()
-        setTitle("线路列表")
+        setTitle("选择主页展示线路")
         context.lifecycleScope.launch {
             mainViewModel.movieListState().collect {
                 dialog.dismiss()
@@ -36,7 +36,13 @@ class MovieSourceDialog(context: AppCompatActivity, private val callback: (() ->
             val index = list.indexOfFirst {
                 it.id == currentMovieId
             }
-            setSingleChoiceItems(list.map { it.name }.toTypedArray(), index) { dialog, position ->
+            setSingleChoiceItems(list.map {
+                if (it.desc.isNullOrEmpty()) {
+                    it.name
+                } else {
+                    it.name + "(${it.desc})"
+                }
+            }.toTypedArray(), index) { dialog, position ->
                 Repository.currentMovie = list[position]
                 callback?.invoke()
                 dialog.dismiss()

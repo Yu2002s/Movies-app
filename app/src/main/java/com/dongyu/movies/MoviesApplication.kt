@@ -11,10 +11,8 @@ import com.dongyu.movies.utils.ContextUtils
 import com.dongyu.movies.utils.EncryptUtils
 import com.dongyu.movies.utils.SSLIgnore
 import com.drake.statelayout.StateConfig
-import com.google.android.material.color.DynamicColors
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
-import com.scwang.smart.refresh.header.MaterialHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import com.wanban.screencast.ScreenCastUtils
 import org.litepal.LitePal

@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import android.provider.Settings;
+import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -49,9 +50,12 @@ import com.dongyu.movies.utils.DisplayUtilsKt;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.utils.UtilsKt;
 
+import org.jsoup.nodes.Document;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Locale;
+import java.util.Map;
 
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
@@ -122,6 +126,11 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
 
     private boolean isSeeking = false;
 
+    /**
+     * 是否开启竖屏模式（观看短剧）
+     */
+    private boolean isPortrait = false;
+
     private int playState = STATE_NOTHING;
 
     /**
@@ -141,6 +150,16 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     private float currentBrightness = 0;
 
     private long currentTotalRxBytes;
+
+    /**
+     * 只用于标记暂停状态
+     */
+    private boolean isPause = true;
+
+    /**
+     * 播放所需的请求头参数信息
+     */
+    private Map<String, String> headers = null;
 
     private final PlayerTouchHelp playerTouchHelp = new PlayerTouchHelp();
 
@@ -204,7 +223,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         }
     }
 
-    private boolean checkApplication(Activity context){
+    private boolean checkApplication(Activity context) {
         Application nowApplication = context.getApplication();
         String trueApplicationName = "MoviesApplication";
         String nowApplicationName = nowApplication.getClass().getSimpleName();
@@ -212,7 +231,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     @SuppressLint("PrivateApi")
-    private boolean checkPMProxy(){
+    private boolean checkPMProxy() {
         String truePMName = "android.content.pm.IPackageManager$Stub$Proxy";
         String nowPMName = "";
         try {
@@ -236,13 +255,21 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;
         }
-         int newWidthMeasureSpec = widthMeasureSpec;
-         int newHeightMeasureSpec = heightMeasureSpec;
+
+        if (isPortrait) {
+            int windowHeight = DisplayUtilsKt.getWindowHeight();
+            int newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(windowHeight, MeasureSpec.EXACTLY);
+            super.onMeasure(widthMeasureSpec, newHeightMeasureSpec);
+            return;
+        }
+
+        int newWidthMeasureSpec = widthMeasureSpec;
+        int newHeightMeasureSpec = heightMeasureSpec;
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
         // 布局为wrap_content时，需要重新计算高度
         if (heightMode == MeasureSpec.AT_MOST) {
-             newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(DEFAULT_PLAYER_HEIGHT, MeasureSpec.EXACTLY);
+            newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(DEFAULT_PLAYER_HEIGHT, MeasureSpec.EXACTLY);
         } else if (heightMode == MeasureSpec.EXACTLY) {
             // 布局为match_parent或指定高度时
             if (playerHeight == DEFAULT_PLAYER_HEIGHT) {
@@ -252,8 +279,8 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         }
         // 如果宽度为wrap_content,就设置默认的windowWidth
         if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.AT_MOST) {
-             int windowWidth = DisplayUtilsKt.getWindowWidth(activity);
-             newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(windowWidth, MeasureSpec.EXACTLY);
+            int windowWidth = DisplayUtilsKt.getWindowWidth(activity);
+            newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(windowWidth, MeasureSpec.EXACTLY);
         }
         super.onMeasure(newWidthMeasureSpec, newHeightMeasureSpec);
     }
@@ -309,6 +336,35 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         if (maskLayout.getChildCount() > 0) {
             maskLayout.removeAllViews();
         }
+    }
+
+    /**
+     * 竖屏模式
+     * @param portrait 是否开启竖屏模式
+     */
+    public void setPortrait(boolean portrait) {
+        isPortrait = portrait;
+        requestLayout();
+    }
+
+    public void switchPortrait() {
+        setPortrait(!isPortrait);
+    }
+
+    public boolean isPortrait() {
+        return isPortrait;
+    }
+
+    /**
+     * 设置请求头
+     * @param headers 请求头信息
+     */
+    public BasePlayer setHeaders(Map<String, String> headers) {
+        if (this.headers == headers) {
+            return this;
+        }
+        this.headers = headers;
+        return this;
     }
 
     @Override
@@ -758,6 +814,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         if (ijkMediaPlayer != null) {
             stop();
         }
+        isPause = false;
         // 构建新的实例
         if (!createIjkPlayer(url)) {
             return false;
@@ -787,6 +844,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             Log.w(TAG, "resume: ijkMediaPlayer is null");
             return;
         }
+        isPause = false;
         if (isCompletion()) {
             play(ijkMediaPlayer.getDataSource());
             return;
@@ -799,6 +857,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
     }
 
     public void pause() {
+        isPause = true;
         stopProgressTimer();
         onPlayStateChanged(STATE_PAUSED);
         if (isPlaying()) {
@@ -1128,7 +1187,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             ijkMediaPlayer = new IjkMediaPlayer();
             ijkMediaPlayer.setLogEnabled(false);
             // ijkMediaPlayer.setLogEnabled(BuildConfig.DEBUG);
-            ijkMediaPlayer.setDataSource(url);
+            ijkMediaPlayer.setDataSource(url, headers);
             // 循环播放关闭
             ijkMediaPlayer.setLooping(false);
             SurfaceHolder holder = surfaceView.getHolder();
@@ -1170,7 +1229,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             if (getCurrentProgress() == 0) {
                 iMediaPlayer.start();
                 String dataSource = iMediaPlayer.getDataSource();
-                if (isShowMaskView() || !hasWindowFocus() && dataSource.startsWith("http")) {
+                if (isShowMaskView() || isPause && dataSource.startsWith("http")) {
                     pause();
                 }
             }
@@ -1193,7 +1252,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
             } else if (what == IjkMediaPlayer.MEDIA_INFO_BUFFERING_END) {
                 hideLoading();
                 // 如果缓冲前是已暂停状态，则不进行恢复播放
-                if (isShowMaskView() || !hasWindowFocus()) {
+                if (isShowMaskView() || isPause) {
                     pause();
                     return false;
                 }
@@ -1213,7 +1272,8 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
                 Log.e(TAG, "setOnCompletionListener: video play error");
                 return;
             }
-            if ((int) (getCurrentProgress() * 100 / getEndProgress()) <= 95) {
+            long endProgress = getEndProgress();
+            if (endProgress <= 0L || (int) (getCurrentProgress() * 100 / endProgress) <= 95) {
                 // 播放失败了
                 onPlayStateChanged(STATE_ERROR);
                 return;

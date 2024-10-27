@@ -12,10 +12,13 @@ import com.dongyu.movies.model.home.NavItem;
 import com.dongyu.movies.model.movie.BaseMovieItem;
 import com.dongyu.movies.model.movie.MovieDetail;
 import com.dongyu.movies.model.movie.MovieItem;
+import com.dongyu.movies.model.movie.MovieVideo;
 import com.dongyu.movies.model.movie.VideoSource;
 import com.dongyu.movies.model.page.PageResult;
 import com.dongyu.movies.model.parser.ParserResult;
 import com.dongyu.movies.model.parser.PlayParam;
+import com.dongyu.movies.model.search.SearchData;
+import com.dongyu.movies.model.search.VerifyData;
 import com.dongyu.movies.parser.ParserList;
 import com.dongyu.movies.parser.SimpleParser;
 import com.google.gson.Gson;
@@ -25,6 +28,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,7 +160,14 @@ public class MxThemeParser extends SimpleParser {
     }
 
     @Override
-    public ParserResult<PageResult<MovieItem>> parseSearchList(Document document) {
+    public ParserResult<SearchData> parseSearchList(Document document) {
+        String title = document.title();
+        if ("系统安全验证".equals(title)) {
+            // TODO: 2024/10/20 验证页待修改
+            byte[] bytes = getResponseBytes("https://cddys1.me/index.php/verify/index.html?");
+            return ParserResult.success(new SearchData(new VerifyData(bytes)));
+        }
+
         Element content = requireNonNull(document.selectFirst(".content"));
         Elements searchList = content.select(".module-main .module-items .module-item");
 
@@ -165,7 +176,7 @@ public class MxThemeParser extends SimpleParser {
         if (searchList.isEmpty()) {
             // 特色情况，结构不同
             searchItem = 10f;
-            Elements modules = document.select("#main .module .module-items .module-search-item");
+            Elements modules = document.select(".module .module-items .module-search-item");
             list = getSearchModules(modules);
         } else {
             searchItem = 16f;
@@ -185,7 +196,7 @@ public class MxThemeParser extends SimpleParser {
 
         searchResult.setLastPage(page);
 
-        return ParserResult.success(searchResult);
+        return ParserResult.success(new SearchData(searchResult, null));
     }
 
     public List<VideoSource> parseSource(Element module, PlayParam playParam, Consumer<VideoSource.Item> consumer) {
@@ -296,7 +307,7 @@ public class MxThemeParser extends SimpleParser {
     }
 
     @Override
-    public ParserResult<String> parseVideo(Document document) {
+    public ParserResult<MovieVideo> parseVideo(Document document) {
         Pattern pattern = Pattern.compile("var player_\\w+=(.+)</script>");
         Matcher matcher = pattern.matcher(document.html());
 
@@ -310,27 +321,31 @@ public class MxThemeParser extends SimpleParser {
                     encryptUrl = URLDecoder.decode(encryptUrl);
                 }*/
                 Log.i(TAG, "encryptUrl: " + encryptUrl);
-                String videoUrl = URLDecoder.decode(encryptUrl);
+                if (encryptUrl.startsWith("%")) {
+                    encryptUrl = URLDecoder.decode(encryptUrl);
+                }
                 if (!encryptUrl.startsWith("http")) {
                     encryptUrl = new String(Base64.decode(encryptUrl, Base64.DEFAULT));
                 }
-                if (videoUrl.endsWith(".html")) {
-                    // videoUrl = parseXm(encryptUrl);
-                    videoUrl = parseVideoUrl(encryptUrl);
+                if (encryptUrl.startsWith("%")) {
+                    encryptUrl = URLDecoder.decode(encryptUrl);
                 }
-                Log.i(TAG, "videoUrl: " + videoUrl);
+                if (encryptUrl.endsWith(".html")) {
+                    encryptUrl = parseVideoUrl(encryptUrl);
+                }
+                Log.i(TAG, "videoUrl: " + encryptUrl);
                 /*if (videoUrl == null) {
                     videoUrl = parseXMFLV(encryptUrl);
                 }*/
                 // 去除末尾无效参数 index.m3u8&token=33d5060dcca7 (MYD)
-                if (videoUrl == null) {
+                if (encryptUrl == null) {
                     return ParserResult.error("解析地址失败");
                 }
-                int index = videoUrl.lastIndexOf(".m3u8&");
+                int index = encryptUrl.lastIndexOf(".m3u8&");
                 if (index != -1) {
-                    videoUrl = videoUrl.substring(0, index + 5);
+                    encryptUrl = encryptUrl.substring(0, index + 5);
                 }
-                return ParserResult.success(videoUrl);
+                return ParserResult.success(new MovieVideo(encryptUrl));
             } catch (Exception ignored) {
             }
         }
@@ -400,6 +415,9 @@ public class MxThemeParser extends SimpleParser {
             String id = parseId(href);
             String style = a.attr("style");
             String cover = parseImg(style);
+            if (!cover.startsWith("http")) {
+                cover = getHost() + cover;
+            }
             String title = requireNonNull(swiperItem.selectFirst(".v-title")).text();
             Element descEl = requireNonNull(swiperItem.selectFirst(".v-ins"));
             String status = descEl.select("p:nth-child(1)").text();

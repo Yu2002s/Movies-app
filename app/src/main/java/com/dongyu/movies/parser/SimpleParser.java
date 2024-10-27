@@ -7,9 +7,9 @@ import androidx.annotation.Nullable;
 import com.dongyu.movies.model.home.CategoryData;
 import com.dongyu.movies.model.home.MainData;
 import com.dongyu.movies.model.movie.MovieDetail;
-import com.dongyu.movies.model.movie.MovieItem;
-import com.dongyu.movies.model.page.PageResult;
+import com.dongyu.movies.model.movie.MovieVideo;
 import com.dongyu.movies.model.parser.ParserResult;
+import com.dongyu.movies.model.search.SearchData;
 import com.dongyu.movies.network.Repository;
 import com.dongyu.movies.utils.AESUtils;
 import com.dongyu.movies.utils.IpUtil;
@@ -52,7 +52,7 @@ public class SimpleParser extends BaseParser<Object> {
     private static final String XBQ_API = "https://jxapi.xbiqu5.com/CloudApi.php";
 
     @Override
-    public ParserResult<PageResult<MovieItem>> parseSearchList(Document document) {
+    public ParserResult<SearchData> parseSearchList(Document document) {
         return null;
     }
 
@@ -62,7 +62,7 @@ public class SimpleParser extends BaseParser<Object> {
     }
 
     @Override
-    public ParserResult<String> parseVideo(Document document) {
+    public ParserResult<MovieVideo> parseVideo(Document document) {
         return null;
     }
 
@@ -114,6 +114,7 @@ public class SimpleParser extends BaseParser<Object> {
             // XMFLV解析播放器
             videoUrl = parseXMFLV(url);
         }
+        Log.d(TAG, "parseVideoUrl: " + videoUrl);
         return videoUrl;
     }
 

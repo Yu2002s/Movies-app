@@ -139,9 +139,7 @@ class MainFragment : BaseFragment() {
                     getHomeFragment().updateNav(data.navList)
                     val models = mutableListOf<HomeModel>()
                     if (data.bannerList.isNotEmpty()) {
-                        val newData = data.bannerList.toMutableList()
-                        newData.add(BannerItem())
-                        models.add(HomeModel.Banner(newData))
+                        models.add(HomeModel.Banner(data.bannerList))
                     }
                     data.tvList.forEach {
                         models.add(HomeModel.MoviesGrid(it))

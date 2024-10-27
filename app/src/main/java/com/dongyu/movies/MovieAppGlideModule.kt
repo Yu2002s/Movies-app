@@ -20,11 +20,12 @@ import java.net.Proxy
 class MovieAppGlideModule : AppGlideModule() {
 
     /*private val okHttpClient = OkHttpClient.Builder()
+        .followRedirects(true)
+        .followSslRedirects(true)
         .addInterceptor {
             var request = it.request()
             request = request.newBuilder()
-                .addHeader("HOST", request.url().host())
-                .addHeader("Referer", request.url().toString())
+                // .addHeader("Referer", request.url().toString())
                 .build()
             var response = it.proceed(request)
             if (response.code() != 200) {
@@ -32,10 +33,7 @@ class MovieAppGlideModule : AppGlideModule() {
                 if (location == null) {
                     location = response.request().url().toString()
                 }
-                request = request.newBuilder()
-                    .addHeader("HOST", request.url().host())
-                    .addHeader("Referer", request.url().toString())
-                    .url(location).build()
+                request = request.newBuilder().url(location).build()
                 response.close()
                 response = it.proceed(request)
             }

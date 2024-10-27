@@ -22,7 +22,10 @@ class LiveFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val liveItems = mutableListOf(
-        LiveItem("默认", LiveRepository.LIVE_M3U_HOST),
+        LiveItem("默认", "https://cdn.jsdelivr.net/gh/BurningC4/Chinese-IPTV@master/TV-IPV4.m3u"),
+        LiveItem("默认2", "https://ghp.ci/raw.githubusercontent.com/joevess/IPTV/main/home.m3u8"),
+        LiveItem("默认3", "https://ghp.ci/raw.githubusercontent.com/joevess/IPTV/main/sources/iptv_sources.m3u8"),
+        LiveItem("默认(IPV6)", LiveRepository.LIVE_M3U_HOST),
         LiveItem("IPTV", "https://iptv-org.github.io/iptv/index.m3u")
     )
 

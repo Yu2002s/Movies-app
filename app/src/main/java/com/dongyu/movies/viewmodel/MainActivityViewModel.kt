@@ -16,7 +16,10 @@ class MainActivityViewModel : ViewModel() {
 
     suspend fun movieListState() = MovieRepository.getHomeMoviesList()
 
-    init {
+    /**
+     * 检查App更新
+     */
+    fun checkUpdate() {
         viewModelScope.launch {
             _updateState.value = AppRepository.checkUpdate()
         }

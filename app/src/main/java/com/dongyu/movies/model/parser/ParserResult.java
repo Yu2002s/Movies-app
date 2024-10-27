@@ -55,4 +55,8 @@ public class ParserResult<T> {
         return new ParserResult<>(false, msg, null);
     }
 
+    public static<T> ParserResult<T> error() {
+        return error("error");
+    }
+
 }

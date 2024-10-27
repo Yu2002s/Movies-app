@@ -43,7 +43,6 @@ public class BiliDanmukuParser extends BaseDanmakuParser {
     public Danmakus parse() {
         if (mDataSource != null) {
             MyFileSource source = (MyFileSource) mDataSource;
-            Log.d("jdy", "source: " + source);
             try {
                 XMLReader xmlReader = XMLReaderFactory.createXMLReader();
                 XmlContentHandler contentHandler = new XmlContentHandler();

@@ -103,12 +103,18 @@ class SearchViewModel : ViewModel() {
         searchFlow.value.name = name
     }
 
+    fun verify(code: String) {
+        searchFlow.value.verifyCode = code
+    }
+
     fun refresh(movie: MovieResponse.Movie) {
         searchFlow.value.apply {
             page = 1
             movieId = movie.id
             searchUrl = movie.fullSearchUrl
             parseId = movie.parseId
+            verifyCode = null
+            verifyUrl = movie.verifyUrl
         }
     }
 

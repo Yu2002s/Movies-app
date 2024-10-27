@@ -73,8 +73,8 @@ class VideoSourceFragment : Fragment() {
         lifecycleScope.launch {
             MovieRepository.getMovieVideo(item.param).collect { result ->
                dialog.dismiss()
-                result.onSuccess { url ->
-                    showDownloadDialog(url, item)
+                result.onSuccess { video ->
+                    showDownloadDialog(video.url, item)
                 }.onFailure {
                     "获取视频地址失败".showToast()
                 }

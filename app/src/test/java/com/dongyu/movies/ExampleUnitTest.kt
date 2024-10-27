@@ -1,6 +1,7 @@
 package com.dongyu.movies
 
 import android.util.Base64
+import android.util.Log
 import com.dongyu.movies.utils.AESUtils
 import com.dongyu.movies.utils.Checker
 import com.dongyu.movies.utils.EncryptUtils
@@ -14,9 +15,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -40,6 +45,19 @@ class ExampleUnitTest {
         println(str)*/
        /*val a = EncryptUtils.getInstance().encode("23*hHVh5Ec0o4M4!9i9AEx@68&h9J\$MW")
         println(a)*/
+
+        val str = " var sources = {};\n" +
+                "            sources[8] = [\n" +
+                "                        {play_link: \"https://www.douban.com/link2/?url=https%3A%2F%2Fm.bilibili.com%2Fbangumi%2Fplay%2Fep836299%3Fbsource%3Ddoubanh5&amp;subtype=8&amp;type=online-video\", ep: \"1\"},\n" +
+                "                        {play_link: \"https://www.douban.com/link2/?url=https%3A%2F%2Fm.bilibili.com%2Fbangumi%2Fplay%2Fep836446%3Fbsource%3Ddoubanh5&amp;subtype=8&amp;type=online-video\", ep: \"2\"},\n" +
+                "                        {play_link: \"https://www.douban.com/link2/?url=https%3A%2F%2Fm.bilibili.com%2Fbangumi%2Fplay%2Fep837088%3Fbsource%3Ddoubanh5&amp;subtype=8&amp;type=online-video\", ep: \"3\"},\n" +
+                "            ];"
+
+        val regex = "\\{play_link: \"https://www\\.douban\\.com/link2/\\?url=(.+)%3F.+\", ep: \"(\\d)+\"\\}".toRegex()
+
+        val result = regex.find(str)
+        println(result?.destructured?.component1())
+
     }
 
     private fun xor(bArr: ByteArray, bArr2: ByteArray): ByteArray {
@@ -61,14 +79,31 @@ class ExampleUnitTest {
 
     @Test
     fun testJsoup() {
-        val document = Jsoup.connect("https://dianyi.ng")
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-            .header("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
-            .header("Cookie", "60b27e2f79149581c86727987ceaab5a=49a5553b38d3af2a02ff798ab85d5459")
-            .get()
+        val client = OkHttpClient()
 
-        println(document.html())
+        val request = Request.Builder()
+            .url("https://v.ddys.pro/v/movie/Alien.Romulus.2024.mp4")
+            .get()
+            .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+            .addHeader("Accept-Encoding", "identity;q=1, *;q=0")
+            .addHeader("pragma", "no-cache")
+            .addHeader("cache-control", "no-cache")
+            .addHeader("sec-ch-ua-platform", "\"Windows\"")
+            .addHeader("sec-ch-ua", "\"Google Chrome\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"")
+            .addHeader("sec-ch-ua-mobile", "?0")
+            .addHeader("origin", "https://ddys.mov")
+            .addHeader("sec-fetch-site", "cross-site")
+            .addHeader("sec-fetch-mode", "cors")
+            .addHeader("sec-fetch-dest", "video")
+            .addHeader("referer", "https://ddys.mov/")
+            .addHeader("accept-language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
+            .addHeader("range", "bytes=0-")
+            .addHeader("priority", "i")
+            .build()
+
+        val response = client.newCall(request).execute()
+        val stream = response.body()!!.byteStream()
+        println(stream.read())
     }
 
     @OptIn(ExperimentalStdlibApi::class)

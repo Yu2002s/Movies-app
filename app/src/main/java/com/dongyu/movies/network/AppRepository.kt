@@ -1,10 +1,7 @@
 package com.dongyu.movies.network
 
-import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
 import com.dongyu.movies.MoviesApplication
-import com.dongyu.movies.model.BingImageResponse
-import kotlinx.coroutines.flow.flow
 
 object AppRepository {
 
@@ -20,5 +17,9 @@ object AppRepository {
 
     suspend fun getBingImage() = requestSuspendSimpleFlow {
         appService.getSingleBingImage("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1")
+    }
+
+    suspend fun getUpdateUrl(key: String) = requestResult {
+        appService.getUpdateUrl(key)
     }
 }

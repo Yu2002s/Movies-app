@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dongyu.movies.model.movie.MovieDetail
 import com.dongyu.movies.model.movie.MovieResponse
+import com.dongyu.movies.model.movie.MovieVideo
 import com.dongyu.movies.model.movie.PlayHistory
 import com.dongyu.movies.model.movie.VideoSource
 import com.dongyu.movies.model.parser.ParseParam
@@ -46,7 +47,7 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
     /**
      * 视频播放状态流
      */
-    private val _videoStateFlow = MutableStateFlow<Result<String>?>(null)
+    private val _videoStateFlow = MutableStateFlow<Result<MovieVideo>?>(null)
     val videoStateFlow = _videoStateFlow.asStateFlow()
 
     /**
@@ -65,7 +66,8 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
                 )
                     .limit(1)
                     .findFirst<PlayHistory>()?.also {
-                        parseParam.selection = it.selection
+                        parseParam.sourceId = it.sourceId
+                        parseParam.selectionId = it.selectionId
                     } ?: PlayHistory(
                     movieId = parseParam.movieId,
                     detailId = parseParam.detailId
@@ -78,6 +80,15 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
     private var _currentMovie: MovieResponse.Movie? = null
 
     val currentMovie get() = _currentMovie!!
+
+    /**
+     * 是否可以进行播放，通常为true，
+     * 一些特殊情况：（详情页返回视频信息，则无需重复获取视频信息）
+     * 通常只在加载完成详情后可能为false，其他情况都是true
+     */
+    private var canPlay = true
+
+    private var videoHeader: Map<String, String>? = null
 
     /**
      * 重新加载详情内容
@@ -113,6 +124,7 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
             MovieRepository.getMovieDetail(parseParam).collect { result ->
                 // 当获取详情成功之后，立即进行获取视频播放地址并进行播放
                 result.onSuccess { detail ->
+                    videoHeader = detail.video?.headers
                     // 从历史记录中
                     updateDetail(detail)
                     getDanmakuUrls(detail)
@@ -157,6 +169,8 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
      * 更新详情信息
      */
     private fun updateDetail(detail: MovieDetail) {
+        // 判断是否加载详情之后加载视频信息，如果返回的视频信息不为空，则之后不进行重复加载
+        canPlay = detail.video == null
         playHistoryStateFlow.value?.apply {
             // 影视名称
             name = detail.movieItem.tvName
@@ -187,14 +201,9 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
     private fun saveOrUpdateVideo(sourceItem: VideoSource.Item) {
         val name = detailStateFlow.value?.getOrNull()?.movieItem?.tvName ?: ""
         val playParam = sourceItem.param
-        // 视频页解析地址
-        // playParam.videoUrl = currentMovie.fullVideoUrl
-        // 解析id
-        // playParam.parseId = currentMovie.parseId
         playHistoryStateFlow.value?.apply {
             if (selection != sourceItem.index) {
                 currentTime = 0
-                Log.d("VideoActivity", "resetCurrent")
             }
             this.name = name + " " + sourceItem.name
             // 源id
@@ -229,6 +238,19 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
         // 详情获取成功时，在进行获取视频播放地址
         viewModelScope.launch(Dispatchers.IO) {
             saveOrUpdateVideo(sourceItem)
+            /*if (!canPlay) {
+                // 一些特殊情况，我们不希望加载视频信息
+                // 通常都是加载完成详情之后可能为false，则详情页为视频页，
+                // 所以无需重复获取详情信息。阻止之后把状态修改为正常情况
+                canPlay = true
+                return@launch
+            }*/
+
+            if (sourceItem.url != null) {
+                _videoStateFlow.value = Result.success(MovieVideo(sourceItem.url!!, videoHeader))
+                return@launch
+            }
+
             MovieRepository.getMovieVideo(sourceItem.param).collect { result ->
                 _videoStateFlow.value = result
             }

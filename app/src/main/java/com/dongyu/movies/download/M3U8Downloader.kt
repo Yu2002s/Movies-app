@@ -1,24 +1,16 @@
 package com.dongyu.movies.download
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.PendingIntent
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Environment
 import android.text.TextUtils
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.dongyu.movies.MoviesApplication
-import com.dongyu.movies.R
 import com.dongyu.movies.model.download.Download
 import com.dongyu.movies.utils.isUrl
 import org.litepal.LitePal
 import org.litepal.extension.findFirst
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -26,8 +18,8 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
-import java.io.InterruptedIOException
 import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.InvalidAlgorithmParameterException
@@ -97,6 +89,11 @@ class M3U8Downloader(
 
             private val DEFAULT_OUTPUT_DIR =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)!!.path + "/DongYuMovies"
+
+            /**
+             * 下载普通文件的线程
+             */
+            private const val THREAD_COUNT = 3
         }
 
         /**
@@ -187,6 +184,15 @@ class M3U8Downloader(
 
         private val lockObj = Object()
 
+        private var isM3U8File = true
+
+        private var fileLength = 0L
+
+        /**
+         * 是否支持多线程
+         */
+        private var isAcceptRange = true
+
         fun stopDownload() {
             isStop = true
             finishedFiles.clear()
@@ -240,10 +246,15 @@ class M3U8Downloader(
 
                 download.start()
 
-                tsUrlSet.forEachIndexed { index, ts ->
-                    downloadThreadPool.execute {
-                        downloadFile(ts, index)
+                if (isM3U8File) {
+                    tsUrlSet.forEachIndexed { index, ts ->
+                        downloadThreadPool.execute {
+                            downloadM3U8File(ts, index)
+                        }
                     }
+                } else {
+                    // 下载其他文件
+                    downloadMP4File()
                 }
 
                 getDownloadStatus()
@@ -269,7 +280,11 @@ class M3U8Downloader(
                     // 一秒更新一次
                     Thread.sleep(1000)
                     download.currentByte = downloadBytes
-                    download.progress = finishedCount * 100 / tsUrlSet.size
+                    if (isM3U8File) {
+                        download.progress = finishedCount * 100 / tsUrlSet.size
+                    } else {
+                        download.progress = (downloadBytes * 100 / fileLength).toInt()
+                    }
                 }
             }
         }
@@ -287,12 +302,16 @@ class M3U8Downloader(
             }
             download.progress = 100
             // finishedCount 不为0则代表成功
-            download.merge()
-            mergeTs()
+            if (isM3U8File) {
+                download.merge()
+                mergeTs()
+            } else {
+                // 移动操作
+            }
             // 删除不需要的临时文件
             deleteTempFiles()
             download.completed()
-            Log.i(TAG, "$fileName 合并完成")
+            Log.i(TAG, "$fileName 下载完成")
         }
 
         private fun generateFile() {
@@ -343,7 +362,81 @@ class M3U8Downloader(
             }
         }
 
-        private fun downloadFile(tsUrl: String, index: Int) {
+        /**
+         * 下载mp4文件
+         */
+        private fun downloadMP4File() {
+
+            fun downloadFile(start: Long, end: Long) {
+                val file = File("$tsTempFile/temp")
+
+                try {
+                    val randomAccessFile = RandomAccessFile(file, "rwd")
+                    val connection = createHttpURLConnection(url)
+                    connection.setRequestProperty("Range", "bytes=$start-$end")
+                    val inputStream = connection.inputStream
+                    Log.d(TAG, connection.headerFields.toString())
+                    if (connection.responseCode != 206) {
+                        throw Exception("下载失败")
+                    }
+                    val bos = BufferedInputStream(inputStream)
+                    if (randomAccessFile.length() <= 0L) {
+                        randomAccessFile.setLength(fileLength)
+                    }
+                    randomAccessFile.seek(start)
+                    randomAccessFile.use {
+                        val bytes = ByteArray(8 * 1024)
+                        var len = bos.read(bytes)
+                        while (len != -1) {
+                            it.write(bytes, 0, len)
+                            len = bos.read(bytes)
+                            synchronized(this) {
+                                downloadBytes += len
+                            }
+                            if (isPause) {
+                                synchronized(lockObj) {
+                                    lockObj.wait()
+                                }
+                            }
+                            if (isStop) {
+                                break
+                            }
+                        }
+                    }
+                    bos.close()
+                    if (isStop) {
+                        return
+                    }
+                    if (++finishedCount == THREAD_COUNT) {
+                        // 已完成
+                        file.renameTo(File(download.downloadPath))
+                    }
+                } catch (e: Exception) {
+                    if (e is InterruptedException) {
+                        return
+                    }
+                    throw e
+                }
+            }
+
+            //                 2400    /   3
+            val byteCount =
+                if (fileLength % THREAD_COUNT == 0L) fileLength / THREAD_COUNT else fileLength / THREAD_COUNT + 1
+            // 3线程下载
+            for (index in 0 until THREAD_COUNT) {
+                val start = byteCount * index
+                val end = if (index == THREAD_COUNT - 1) {
+                    fileLength - 1
+                } else {
+                    (index + 1) * byteCount - 1
+                }
+                downloadThreadPool.execute {
+                    downloadFile(start, end)
+                }
+            }
+        }
+
+        private fun downloadM3U8File(tsUrl: String, index: Int) {
             var count = 1
             var httpURLConnection: HttpURLConnection? = null
 
@@ -467,10 +560,17 @@ class M3U8Downloader(
         @Throws(Exception::class)
         private fun getTsUrl(): String? {
             val content: StringBuilder = getUrlContent(url, false)
+            if (!isM3U8File) {
+                return null
+            }
             //判断是否是m3u8链接
-            if (!content.toString()
+            /*if (!content.toString()
                     .contains("#EXTM3U")
-            ) throw Exception(url + "不是m3u8链接！")
+            ) {
+                isM3U8File = false
+                // throw Exception(url + "不是m3u8链接！")
+                return null
+            }*/
             val split = content.toString().split("\\n".toRegex()).dropLastWhile { it.isEmpty() }
                 .toTypedArray()
             var keyUrl = ""
@@ -582,12 +682,25 @@ class M3U8Downloader(
                     httpURLConnection.readTimeout = timeoutMillisecond
                     httpURLConnection.useCaches = false
                     httpURLConnection.doInput = true
+                    httpURLConnection.setRequestProperty("Range", "bytes=0-")
                     /*for ((key, value) in requestHeaderMap.entries) {
                         httpURLConnection.addRequestProperty(key, value.toString())
+                    }*/
+                    // 一般m3u8文件不会大于1m，如果大于1m而且是没有m3u8后缀的就是普通mp4文件
+                    /*if (fileLength > 1024 * 1024 && !isKey && url.path.lastIndexOf(".m3u8") == -1) {
+                        // 直接返回空数据
+                        return content
                     }*/
                     var line: String?
                     val inputStream = httpURLConnection.inputStream
                     val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+
+                    fileLength = httpURLConnection.contentLengthLong
+                    // download.byteCount = fileLength
+                    val property = httpURLConnection.getRequestProperty("Accept-Range")
+                    Log.d(TAG, "" + property)
+                    isAcceptRange = httpURLConnection.responseCode == 206
+
                     if (isKey) {
                         val bytes = ByteArray(128)
                         val len = inputStream.read(bytes)
@@ -597,6 +710,18 @@ class M3U8Downloader(
                             content.append("isByte")
                         } else content.append(String(bytes.copyOf(len)))
                         return content
+                    }
+                    line = bufferedReader.readLine()
+                    if (line != null) {
+                        content.append(line)
+                        if (!line.contains("#EXTM3U")) {
+                            isM3U8File = false
+                            // 直接返回
+                            bufferedReader.close()
+                            inputStream.close()
+                            return content
+                        }
+                        content.append("\n")
                     }
                     while ((bufferedReader.readLine().also { line = it }) != null) content.append(
                         line

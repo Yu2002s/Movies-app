@@ -10,4 +10,16 @@ data class Update(
     val content: String,
     val altUrl: String,
     val updateAt: Date
-)
+) {
+    data class Download(
+        /**
+         * 下载地址
+         */
+        val directLink: String,
+        /**
+         * 过期时间
+         */
+        val expiration: Long,
+        val expires: String
+    )
+}

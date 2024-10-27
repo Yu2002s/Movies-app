@@ -10,7 +10,7 @@
         android:layout_height="280dp"/>
 
     <TextView
-        android:text="请确保您的家庭WIFI支持且开启IPV6功能"
+        android:text="如出现无法播放情况，请先确保您的家庭WIFI支持且开启IPV6功能"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

@@ -11,7 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -58,9 +57,14 @@ public class VideoSourceView extends LinearLayoutCompat {
     private VideoSource.Item beforeSourceItem;
 
     /**
-     * 当前源所在的位置
+     * 当前选中的源
      */
     private int currentSourcePosition = -1;
+    
+    /**
+     * 当前源中所在的位置
+     */
+    private int currentSourceItemPosition = -1;
 
     private final List<VideoSource> videoSources = new ArrayList<>();
 
@@ -110,7 +114,7 @@ public class VideoSourceView extends LinearLayoutCompat {
             RecyclerView rv = getRecyclerView(videoSource);
             sourceViews.add(rv);
         }
-        currentSourcePosition = 0;
+        currentSourceItemPosition = 0;
         sourcePageAdapter.notifyDataSetChanged();
         if (init) {
             vp.post(this::initSelection);
@@ -121,17 +125,29 @@ public class VideoSourceView extends LinearLayoutCompat {
     private @NonNull RecyclerView getRecyclerView(VideoSource videoSource) {
         RecyclerView rv = new RecyclerView(getContext());
         rv.setClipToPadding(false);
+        rv.setNestedScrollingEnabled(false);
         rv.setPadding(rv.getPaddingLeft(), rv.getPaddingTop(), rv.getPaddingTop(), insertBottom);
-        rv.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
+        rv.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3);
         rv.setLayoutManager(gridLayoutManager);
         SourceItemAdapter sourceItemAdapter = new SourceItemAdapter(videoSource.getItems());
         sourceItemAdapter.setListener((item, position) -> {
-            currentSourcePosition = position;
             setSelection(item);
         });
         rv.setAdapter(sourceItemAdapter);
         return rv;
+    }
+
+    /**
+     * 仅设置播放项，不进行任何其他操作，视图将不会进行更新
+     * @param currentSourceItem 设置当前播放项
+     */
+    public void setCurrentSourceItem(VideoSource.Item currentSourceItem) {
+        this.currentSourceItem = currentSourceItem;
+    }
+    
+    public int getCurrentSourcePosition() {
+        return currentSourcePosition;
     }
 
     /**
@@ -219,8 +235,8 @@ public class VideoSourceView extends LinearLayoutCompat {
      * 获取当前源所在的位置
      * @return 所在的位置
      */
-    public int getCurrentSourcePosition() {
-        return currentSourcePosition;
+    public int getCurrentSourceItemPosition() {
+        return currentSourceItemPosition;
     }
 
     /**
@@ -243,16 +259,15 @@ public class VideoSourceView extends LinearLayoutCompat {
             Log.i(TAG, "没有可以切换的源");
             return false;
         }
-        int selectedTabPosition = tab.getSelectedTabPosition();
-        if (selectedTabPosition == -1) {
+        if (currentSourcePosition == -1) {
             return false;
         }
-        int nextPosition = selectedTabPosition + 1;
+        int nextPosition = currentSourcePosition + 1;
         if (nextPosition > videoSources.size() - 1) {
             // 如果是最后一个了就切换会第一个
             nextPosition = 0;
         }
-        int beforeSelectionIndex = videoSources.get(selectedTabPosition).getItems().indexOf(currentSourceItem);
+        int beforeSelectionIndex = videoSources.get(currentSourcePosition).getItems().indexOf(currentSourceItem);
         VideoSource nextSource = videoSources.get(nextPosition);
         List<VideoSource.Item> items = nextSource.getItems();
         if (beforeSelectionIndex == -1 || beforeSelectionIndex > items.size() - 1) {
@@ -278,6 +293,7 @@ public class VideoSourceView extends LinearLayoutCompat {
             VideoSource videoSource = videoSources.get(i);
             clearSelectSourceItem(videoSource, i);
             if (videoSource.getId().equals(currentSourceItem.getParam().getSourceId())) {
+                currentSourcePosition = i;
                 TabLayout.Tab tabItem = tab.getTabAt(i);
                 if (tabItem == null) {
                     return;
@@ -330,6 +346,7 @@ public class VideoSourceView extends LinearLayoutCompat {
                 adapter.notifyItemChanged(i);
             }
             if (item.getParam().getSelectionId().equals(currentSourceItem.getParam().getSelectionId())) {
+                currentSourceItemPosition = i;
                 item.setSelected(true);
                 adapter.notifyItemChanged(i);
                 isLastSourceItem = i == items.size() - 1;

@@ -30,7 +30,7 @@ data class Download(
     /**
      * 需要下载的字节总数
      */
-    val byteCount: Long = 0L,
+    var byteCount: Long = 0L,
     /**
      * 创建时间
      */
@@ -69,6 +69,8 @@ data class Download(
                 else -> "未下载"
             }
         }
+
+    val isDownloading get() = status == DownloadStatus.PREPARE || status == DownloadStatus.DOWNLOADING
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

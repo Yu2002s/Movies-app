@@ -5,6 +5,7 @@ import com.baidu.mobads.proxy.BuildConfig
 import com.dongyu.movies.activity.LoginActivity
 import com.dongyu.movies.api.AppService
 import com.dongyu.movies.api.MovieService
+import com.dongyu.movies.api.ParseService
 import com.dongyu.movies.api.UserService
 import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.model.base.BaseResponse
@@ -36,6 +37,14 @@ fun <T> requestSimpleFlow(block: () -> T) =
     flow {
         emit(runCatching { block() })
     }.flowOn(Dispatchers.IO)
+
+fun <T> requestSimpleCallResult(block: () -> Call<BaseResponse<T>>) = runCatching {
+    val response = block().execute().body() ?: throw Throwable("body is null")
+    if (response.code != 200) {
+        throw Throwable(response.msg)
+    }
+    response.data
+}
 
 suspend fun <T> requestSuspendSimpleFlow(block: suspend () -> T) = flow {
     emit(runCatching { block() })
@@ -76,11 +85,11 @@ suspend fun <T> requestParse(block: suspend () -> ParserResult<T>) = flow {
 object Repository {
 
     // http://192.168.31.138  http://192.168.6.123
-    private const val API_HOST_DEBUG = "http://192.168.0.104"
+    private const val API_HOST_DEBUG = "http://192.168.31.138"
     private const val API_HOST_RELEASE = "http://movies.jdynb.xyz"
 
-    private val BASE_URL = API_HOST_RELEASE
-//    if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
+    private val BASE_URL = API_HOST_DEBUG
+    // if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
 
     private const val SP_USER = "user"
     private const val KEY_USER_ID = "id"
@@ -195,8 +204,6 @@ object Repository {
     val okHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
             var request = chain.request()
-            var str = "来呀来呀充八万"
-            str += "!"
             val now = System.currentTimeMillis()
             val apiToken = AesEncryption.encrypt(API_TOKEN_KEY + now)
             val newRequest = request.newBuilder()
@@ -223,6 +230,8 @@ object Repository {
     val userService = retrofit.create<UserService>()
 
     val movieService = retrofit.create<MovieService>()
+
+    val parseService = retrofit.create<ParseService>()
 
     val appService = retrofit.create<AppService>()
 }

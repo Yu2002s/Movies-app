@@ -1,10 +1,13 @@
 package com.dongyu.movies.parser;
 
 import com.dongyu.movies.parser.impl.CCParser;
+import com.dongyu.movies.parser.impl.DDParser;
+import com.dongyu.movies.parser.impl.DouBanParser;
 import com.dongyu.movies.parser.impl.KeKeParser;
 import com.dongyu.movies.parser.impl.MJParser;
 import com.dongyu.movies.parser.impl.MxThemeParser;
 import com.dongyu.movies.parser.impl.MxThemeParser2;
+import com.dongyu.movies.parser.impl.YJParser;
 
 public enum ParserList {
 
@@ -12,7 +15,10 @@ public enum ParserList {
     MX_THEME(2, new MxThemeParser()),
     MX_THEME2(3, new MxThemeParser2()),
     MJ(4, new MJParser()),
-    CC(5, new CCParser());
+    CC(5, new CCParser()),
+    YJ(6, new YJParser()),
+    DD(7, new DDParser()),
+    DB(8, new DouBanParser());
 
     /**
      * 唯一的解析id
@@ -31,6 +37,7 @@ public enum ParserList {
 
     /**
      * 获取当前解析器id
+     *
      * @return 解析id
      */
     public int getParseId() {
@@ -39,6 +46,7 @@ public enum ParserList {
 
     /**
      * 通过id获取指定解析器
+     *
      * @param id 解析id
      * @return 解析器实例
      */

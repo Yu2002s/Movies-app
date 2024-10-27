@@ -75,7 +75,7 @@ class CrashHandler: Thread.UncaughtExceptionHandler {
         val context = MoviesApplication.context
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         stringBuilder.append("提示：请先尝试清除软件数据，如复现，请反馈\n")
-        // stringBuilder.append("联系QQ：2475058223\n")
+        stringBuilder.append("联系QQ：2475058223\n")
         stringBuilder.append("手机型号: " + Build.MODEL + "-" + Build.BRAND)
         stringBuilder.append("\n当前软件版本：${packageInfo.versionName}\n")
         stringBuilder.append("SDK版本: " + Build.VERSION.SDK_INT)

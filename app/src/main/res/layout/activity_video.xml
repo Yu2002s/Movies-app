@@ -14,27 +14,27 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollview"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:fillViewport="true"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:paddingHorizontal="10dp">
 
             <TextView
-                android:layout_marginEnd="10dp"
                 android:id="@+id/tv_name"
-                app:layout_goneMarginStart="0dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toStartOf="@id/collect"
+                android:layout_marginEnd="10dp"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
+                app:layout_constraintEnd_toStartOf="@id/collect"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_goneMarginStart="0dp"
                 tools:text="@string/app_name" />
 
             <TextView
@@ -49,14 +49,14 @@
 
             <ImageButton
                 android:id="@+id/collect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:background="@null"
                 android:src="@drawable/baseline_favorite_border_24"
-                app:layout_constraintTop_toTopOf="@id/switch_source"
                 app:layout_constraintBottom_toBottomOf="@id/switch_source"
                 app:layout_constraintEnd_toStartOf="@id/switch_source"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                app:layout_constraintTop_toTopOf="@id/switch_source" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/switch_source"
@@ -67,15 +67,26 @@
                 app:layout_constraintTop_toTopOf="@id/tv_name"
                 tools:visibility="visible" />
 
-            <com.dongyu.movies.view.VideoSourceView
-                android:visibility="invisible"
-                android:id="@+id/source_view"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/play_tips"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:contentPadding="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_desc" />
+                app:layout_constraintTop_toBottomOf="@id/tv_desc"
+                app:layout_goneMarginTop="0dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="8dp"
+                    android:text="@string/play_tips"
+                    android:textSize="12sp"
+                    app:drawableStartCompat="@drawable/baseline_info_24" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <ProgressBar
                 android:id="@+id/loading"
@@ -86,7 +97,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/tv_desc" />
 
             <include
                 android:id="@+id/error"
@@ -97,7 +108,16 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/tv_desc" />
+
+            <com.dongyu.movies.view.VideoSourceView
+                android:id="@+id/source_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/play_tips" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

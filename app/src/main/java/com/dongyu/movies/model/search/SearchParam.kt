@@ -6,13 +6,17 @@ data class SearchParam(
     var page: Int = 1,
     var searchUrl: String = "",
     var parseId: Int = 1,
+    var verifyCode: String? = null,
+    var verifyUrl: String? = null,
 ) {
     constructor(param: SearchParam) : this(
         name = param.name,
         movieId = param.movieId,
         page = param.page,
         searchUrl = param.searchUrl,
-        parseId = param.parseId
+        parseId = param.parseId,
+        verifyCode = param.verifyCode,
+        verifyUrl = param.verifyUrl
     )
 
     override fun equals(other: Any?): Boolean {

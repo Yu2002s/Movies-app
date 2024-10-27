@@ -65,6 +65,10 @@ data class VideoSource(
          * 播放所需参数
          */
         val param: PlayParam,
+        /**
+         * 播放地址
+         */
+        var url: String? = null,
     ): Parcelable {
         /**
          * 选中状态
@@ -79,9 +83,11 @@ data class VideoSource(
             selected = parcel.readByte() != 0.toByte()
         }
 
-        constructor(item: Item): this(name = item.name, index = item.index, param = PlayParam(item.param)) {
+        constructor(item: Item): this(name = item.name, index = item.index, param = PlayParam(item.param), url = item.url) {
             this.selected = item.selected
         }
+
+        constructor(name: String, index: Int, param: PlayParam): this(name, index, param, null)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

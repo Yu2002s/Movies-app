@@ -24,17 +24,17 @@ data class ParseParam(
      */
     var parseId: Int = -1,
     /**
-     * 集数 (0开始，表示第一集)
-     */
-    var selection: Int = 0,
-    /**
      * 电视名称
      */
     val tvName: String = "",
     /**
-     * 源id
+     * 源id（通常情况下不用设置此值）
      */
-    val sourceId: String = "",
+    var sourceId: String = "",
+    /**
+     * 集数id（通常情况下只有在详情页和播放页相同时才会有值，一般不需要手动赋值）
+     */
+    var selectionId: String = "",
 ): Parcelable {
 
     constructor(detailId: String, parseId: Int, parseUrl: String): this(detailId = detailId) {
@@ -52,7 +52,6 @@ data class ParseParam(
         parcel.readString() ?: "",
         parcel.readString(),
         parcel.readInt(),
-        parcel.readInt()
     ) {
     }
 
@@ -61,7 +60,6 @@ data class ParseParam(
         parcel.writeString(detailId)
         parcel.writeString(parseUrl)
         parcel.writeInt(parseId)
-        parcel.writeInt(selection)
     }
 
     override fun describeContents(): Int {

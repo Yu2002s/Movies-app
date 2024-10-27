@@ -1,19 +1,33 @@
 package com.dongyu.movies.network
 
 import android.util.Log
+import com.dongyu.movies.model.base.BaseResponse
 import com.dongyu.movies.model.home.ClassifyQueryParam
+import com.dongyu.movies.model.movie.ParseSource
 import com.dongyu.movies.model.parser.ParseParam
 import com.dongyu.movies.model.parser.PlayParam
+import com.dongyu.movies.model.search.DouBanSearchResult
 import com.dongyu.movies.model.search.History
 import com.dongyu.movies.model.search.IQiYiSearchParams
 import com.dongyu.movies.model.search.SearchParam
 import com.dongyu.movies.model.search.SearchSuggestItem
 import com.dongyu.movies.parser.ParserList
+import com.dongyu.movies.parser.impl.DouBanParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
+import org.json.JSONArray
 import org.litepal.LitePal
 import org.litepal.extension.find
 import retrofit2.await
+import java.io.IOException
+import java.net.URLDecoder
 
 /**
  * 视频仓库，获取视频信息
@@ -24,7 +38,12 @@ object MovieRepository {
 
     private const val IQIYI_VIDEO_URL = "https://mesh.if.iqiyi.com/player/pcw/video/baseInfo"
 
-    private const val DAN_MA_KU_API = "https://danmu.zxz.ee/?type=xml&id="
+    // https://danmu.zxz.ee/?type=xml&id=
+    private const val DAN_MA_KU_API = "https://dmku.hls.one/?ac=dm&url="
+
+    private const val DOU_BNA_SEARCH_URL = "https://m.douban.com/rexxar/api/v2/search"
+
+    private const val DOU_BAN_HOST = "https://movie.douban.com"
 
     private val movieService = Repository.movieService
 
@@ -45,6 +64,8 @@ object MovieRepository {
         ParserList.getParser(parseParam.parseId)
             .setUrl(parseParam.parseUrl)
             .setDetailId(parseParam.detailId)
+            .setSelectionId(parseParam.selectionId)
+            .setSourceId(parseParam.sourceId)
             .detail
     }
 
@@ -107,8 +128,10 @@ object MovieRepository {
         requestParse {
             ParserList.getParser(searchParam.parseId)
                 .setUrl(searchParam.searchUrl)
+                .setVerifyUrl(searchParam.verifyUrl)
                 .setName(searchParam.name)
                 .setPage(searchParam.page)
+                .setVerifyCode(searchParam.verifyCode)
                 .searchList
         }
 
@@ -129,8 +152,12 @@ object MovieRepository {
                 "userVip" to "0",
                 "vipType" to "-1",
             )
+
+        // 先使用爱奇艺进行搜索
+        var hasMovie = false
+
         try {
-            val response = movieService.getMovieDanMuKu(IQIYI_SEARCH_URL, params).await()
+            val response = movieService.searchIQIYIMovie(IQIYI_SEARCH_URL, params).await()
             if (response.code != 0) {
                 return@flow
             }
@@ -146,6 +173,7 @@ object MovieRepository {
                     emit(template.albumInfo!!.videos.map {
                         DAN_MA_KU_API + it.pageUrl
                     })
+                    hasMovie = true
                     break
                 } else if (type == 103) {
                     val videoRes =
@@ -154,11 +182,61 @@ object MovieRepository {
                         continue
                     }
                     emit(listOf(DAN_MA_KU_API + videoRes.data.playUrl))
+                    hasMovie = true
                     break
                 }
             }
         } catch (e: Exception) {
             Log.e("jdy", "getMovieDanMuKu: ${e.message}")
         }
+
+        // 使用豆瓣进行搜索
+        if (!hasMovie) {
+            Log.d("jdy", "doubanSearch")
+            try {
+                val douBanSearchResult =
+                    movieService.searchDouBanMovie(DOU_BNA_SEARCH_URL, searchParams.name, "relevance")
+                Log.d("jdy", "response: $douBanSearchResult")
+                val items = douBanSearchResult.subjects.items.toMutableList()
+                douBanSearchResult.smartBox?.let {
+                    items.addAll(it)
+                }
+                items.find {
+                    if (searchParams.year != null) {
+                        val matchYear = it.target.year == searchParams.year.toString()
+                        if (!matchYear) {
+                            return@find searchParams.name.replace(" ", "") ==
+                                    it.target.title.replace(" ", "")
+                        }
+                        return@find true
+                    } else {
+                        searchParams.name.replace(" ", "") ==
+                                it.target.title.replace(" ", "")
+                    }
+                }?.target_id?.let { id ->
+                    Log.d("jdy", "targetId: $id")
+                    // 使用解析器进行解析
+                    val okhttp = Repository.okHttpClient
+                    val request = Request.Builder()
+                        .url("$DOU_BAN_HOST/subject/$id/")
+                        .get()
+                        .build()
+                    val response = withContext(Dispatchers.IO) {
+                        okhttp.newCall(request).execute().body()!!.string()
+                    }
+                    val regex = "\\{play_link: \"https://www\\.douban\\.com/link2/\\?url=(.+)%3F.+\", ep: \"(\\d)+\"\\}".toRegex()
+                    emit(regex.findAll(response).map {
+                        DAN_MA_KU_API + URLDecoder.decode(it.destructured.component1())
+                    }.toList())
+
+                }
+            } catch (e: Exception) {
+                Log.e("jdy", "getMovieDanmaku: $e")
+            }
+        }
+    }
+
+    suspend fun getDouBanSearchResult(name: String): DouBanSearchResult {
+        return movieService.searchDouBanMovie(DOU_BNA_SEARCH_URL, name, "relevance")
     }
 }

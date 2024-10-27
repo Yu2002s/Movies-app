@@ -15,7 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
-import java.util.zip.Inflater
+import java.io.IOException
 
 
 /**
@@ -71,6 +71,9 @@ class ExampleInstrumentedTest {
 
         val request2 = Request.Builder()
             .url(url)
+            .header("User-Agent", BaseParser.USER_AGENT)
+            .header("Accept", BaseParser.ACCEPT)
+            .header("Accept-Language", BaseParser.ACCEPT_LANGUAGE)
             .get()
             .build()
 
@@ -79,22 +82,18 @@ class ExampleInstrumentedTest {
         println("response: $response2")
 
         val bytes = response2.body()!!.byteStream().readBytes()
-        val compressBytes = bytes.sliceArray(3354..bytes.size)
+        val compressBytes = bytes.sliceArray(3354 until bytes.size)
 
-        decompress(compressBytes)
-    }
+        println(compressBytes.contentToString())
+       /* val uncompressedBytes = test1(compressBytes)
 
-    fun decompress(data: ByteArray): ByteArray {
-        val inflater = Inflater();
-        inflater.setInput(data);
-
-        val outputStream =  ByteArrayOutputStream(data.size);
-        val buffer = ByteArray(1024)
-        while (!inflater.finished()) {
-            val count = inflater.inflate(buffer);
-            outputStream.write(buffer, 0, count);
+        var result = ""
+        var num = 16384
+        for (i in 0 until uncompressedBytes.size) {
+            result += uncompressedBytes.sliceArray((i * num).until((i + 1) * num))
         }
-        outputStream.close();
-        return outputStream.toByteArray();
+
+        println(result)*/
     }
+
 }

@@ -74,6 +74,7 @@ class LiveSourcesFragment : BaseFragment() {
                     } else {
                         Glide.with(this@LiveSourcesFragment)
                             .load(model.logo)
+                            .error("https://live.fanmingming.com/tv/${model.id}.png")
                             .placeholder(R.drawable.baseline_live_tv_24)
                             .override(Target.SIZE_ORIGINAL)
                             .into(logo)

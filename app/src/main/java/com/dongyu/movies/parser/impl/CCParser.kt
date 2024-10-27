@@ -1,5 +1,6 @@
 package com.dongyu.movies.parser.impl
 
+import android.util.Log
 import com.dongyu.movies.model.home.BannerItem
 import com.dongyu.movies.model.home.CategoryData
 import com.dongyu.movies.model.home.FilterData
@@ -9,9 +10,11 @@ import com.dongyu.movies.model.home.NavItem
 import com.dongyu.movies.model.movie.BaseMovieItem
 import com.dongyu.movies.model.movie.MovieDetail
 import com.dongyu.movies.model.movie.MovieItem
+import com.dongyu.movies.model.movie.MovieVideo
 import com.dongyu.movies.model.movie.VideoSource
 import com.dongyu.movies.model.page.PageResult
 import com.dongyu.movies.model.parser.ParserResult
+import com.dongyu.movies.model.search.SearchData
 import com.dongyu.movies.parser.ParserList
 import com.dongyu.movies.parser.SimpleParser
 import org.jsoup.nodes.Document
@@ -20,9 +23,9 @@ import org.jsoup.nodes.Element
 /**
  * 策驰影视 <a href="https://www.hbeast.cn/">策驰</a>
  */
-class CCParser: SimpleParser() {
+class CCParser : SimpleParser() {
 
-    override fun parseSearchList(document: Document): ParserResult<PageResult<MovieItem>> {
+    override fun parseSearchList(document: Document): ParserResult<SearchData>? {
         val pageResult = PageResult<MovieItem>()
 
         val row = requireNonNull(document.selectFirst(".container .row"))
@@ -60,7 +63,7 @@ class CCParser: SimpleParser() {
             }
         }*/
 
-        return ParserResult.success(pageResult)
+        return ParserResult.success(SearchData(pageResult))
     }
 
     override fun parseDetail(document: Document): ParserResult<MovieDetail> {
@@ -90,16 +93,21 @@ class CCParser: SimpleParser() {
             this.detail = desc
         }
 
-
         val row = requireNonNull(document.selectFirst("body>.container .row"))
         val sources = row.select(".tab-toggle a").map { it.text() }
 
         val sourceList = mutableListOf<VideoSource>()
         row.select(".play-list").mapIndexed { index, el ->
-            val items = el.select("a").mapIndexed { i, item ->
-                val playParam = requireNonNull(getPlayParamForUrl(item.attr("href")))
-                VideoSource.Item(item.text(), i, playParam)
-            }
+            val items = el.select("a")
+                .filter { it ->
+                    it.attr("href")
+                        .startsWith("/")
+                }
+                .mapIndexed { i, item ->
+                    Log.d(TAG, "href: ${item.attr("href")}")
+                    val playParam = requireNonNull(getPlayParamForUrl(item.attr("href")))
+                    VideoSource.Item(item.text(), i, playParam)
+                }
             val id = items[0].param.sourceId
             val videoSource = VideoSource(id, sources[index], items)
             sourceList.add(videoSource)
@@ -112,7 +120,7 @@ class CCParser: SimpleParser() {
         return ParserResult.success(movieDetail)
     }
 
-    override fun parseVideo(document: Document?): ParserResult<String> {
+    override fun parseVideo(document: Document?): ParserResult<MovieVideo>? {
         return ParserList.getParser(ParserList.MX_THEME.parseId).parseVideo(document)
     }
 
@@ -157,9 +165,14 @@ class CCParser: SimpleParser() {
 
         if (notParams) {
             val regex = "/vpooyj/(\\d+)".toRegex()
-            val filterTypes = arrayOf(FilterData.FILTER_CATE, FilterData.FILTER_TYPE, FilterData.FILTER_AREA, FilterData.FILTER_YEAR)
+            val filterTypes = arrayOf(
+                FilterData.FILTER_CATE,
+                FilterData.FILTER_TYPE,
+                FilterData.FILTER_AREA,
+                FilterData.FILTER_YEAR
+            )
             filterList = document.select(".type-box .type-select").mapIndexed { index, it ->
-               val items = it.select("a")
+                val items = it.select("a")
                 val name = items[0].text()
                 val id = filterTypes[index]
                 items.removeAt(0)

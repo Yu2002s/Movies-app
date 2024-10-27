@@ -68,6 +68,31 @@ class SPConfig {
         const val PLAYER_SMALL_PROGRESS = "small_progress"
 
         /**
+         * 弹幕行数
+         */
+        const val PLAYER_DANMAKU_LINE = "danmaku_line"
+
+        /**
+         * 弹幕透明度
+         */
+        const val PLAYER_DANMAKU_ALPHA = "danmaku_alpha"
+
+        /**
+         * 弹幕大小
+         */
+        const val PLAYER_DANMAKU_SIZE = "danmaku_size"
+
+        /**
+         * 弹幕间距
+         */
+        const val PLAYER_DANMAKU_MARGIN = "danmaku_margin"
+
+        /**
+         * 弹幕滚动速度
+         */
+        const val PLAYER_DANMAKU_SPEED = "danmaku_speed"
+
+        /**
          * App主题样式
          */
         const val APP_THEME = "theme"

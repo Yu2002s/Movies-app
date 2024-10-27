@@ -2,15 +2,17 @@ package com.dongyu.movies.api
 
 import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.model.base.BaseResponse
-import com.dongyu.movies.model.home.CategoryData
-import com.dongyu.movies.model.home.ClassifyQueryParam
 import com.dongyu.movies.model.movie.IQiYiVideoInfo
+import com.dongyu.movies.model.movie.ParseSource
+import com.dongyu.movies.model.search.DouBanSearchResult
 import com.dongyu.movies.model.search.IQiYiSearchResult
 import com.dongyu.movies.model.search.Suggest
+import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
+import retrofit2.http.HEAD
+import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
@@ -28,7 +30,7 @@ interface MovieService {
     suspend fun getMovieById(@Path("id") id: Int): BaseResponse<MovieResponse.Movie>
 
     @GET
-    fun getMovieDanMuKu(
+    fun searchIQIYIMovie(
         @Url url: String,
         @QueryMap map: Map<String, String>
     ): Call<BaseResponse<IQiYiSearchResult>>
@@ -39,6 +41,14 @@ interface MovieService {
         @Query("id") id: String,
     ): Call<IQiYiVideoInfo>
 
+    @GET
+    @Headers("Referer: https://www.douban.com/search")
+    suspend fun searchDouBanMovie(
+        @Url url: String,
+        @Query("q") keyword: String,
+        @Query("sort") sort: String,
+    ): DouBanSearchResult
+
     /**
      * 获取主页的数据
      */
@@ -47,10 +57,4 @@ interface MovieService {
 
     @GET("/movies/home_list")
     fun getHomeMoviesList(): Call<BaseResponse<List<MovieResponse.Movie>>>
-
-    /**
-     * 查询搜索建议
-     */
-    @GET("/movies/search_suggest")
-    fun getSearchSuggest(@Query("name") name: String): Call<BaseResponse<List<Suggest>>>
 }

@@ -17,14 +17,13 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import com.dongyu.movies.R
 import com.dongyu.movies.base.BaseActivity
-import com.dongyu.movies.model.search.SearchSuggestItem
-import com.dongyu.movies.model.search.SearchUiResult
-import com.dongyu.movies.model.search.SearchUiSuggest
 import com.dongyu.movies.databinding.ActivitySearchBinding
 import com.dongyu.movies.databinding.ItemListSearchBinding
 import com.dongyu.movies.fragment.search.SearchFragment
+import com.dongyu.movies.model.search.SearchSuggestItem
+import com.dongyu.movies.model.search.SearchUiResult
+import com.dongyu.movies.model.search.SearchUiSuggest
 import com.dongyu.movies.utils.dp2px
-import com.dongyu.movies.utils.ioThread
 import com.dongyu.movies.viewmodel.SearchViewModel
 import com.drake.brv.utils.setDifferModels
 import com.drake.brv.utils.setup

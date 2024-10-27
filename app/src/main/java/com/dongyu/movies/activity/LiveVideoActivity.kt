@@ -35,6 +35,26 @@ class LiveVideoActivity: BaseActivity() {
 
         liveSource?.let {
             binding.player.play(it.url)
+            
+            /*val map = mutableMapOf<String, String>()
+                map.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+                map.put("Accept-Encoding", "identity;q=1, *;q=0")
+                map.put("pragma", "no-cache")
+                map.put("cache-control", "no-cache")
+                map.put("sec-ch-ua-platform", "\"Windows\"")
+                map.put("sec-ch-ua", "\"Google Chrome\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"")
+                map.put("sec-ch-ua-mobile", "?0")
+                map.put("origin", "https://ddys.mov")
+                map.put("sec-fetch-site", "cross-site")
+                map.put("sec-fetch-mode", "cors")
+                map.put("sec-fetch-dest", "video")
+                map.put("referer", "https://ddys.mov/")
+                map.put("accept-language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
+                map.put("range", "bytes=0-")
+                map.put("priority", "i")
+            
+            binding.player.setHeaders(map)
+            binding.player.play("https://v.ddys.pro/v/movie/Alien.Romulus.2024.mp4")*/
         }
     }
 

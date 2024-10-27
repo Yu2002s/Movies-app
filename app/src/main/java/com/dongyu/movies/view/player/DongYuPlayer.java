@@ -8,13 +8,13 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -49,17 +50,22 @@ import com.dongyu.movies.event.OnSourceItemChangeListener;
 import com.dongyu.movies.event.OnVideoErrorBtnClickListener;
 import com.dongyu.movies.model.movie.VideoSource;
 import com.dongyu.movies.utils.DisplayUtilsKt;
-import com.dongyu.movies.utils.IOKt;
 import com.dongyu.movies.utils.SpUtils;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.utils.UtilsKt;
+import com.dongyu.movies.utils.player.AcFunDanmakuParser;
 import com.dongyu.movies.utils.player.BiliDanmukuParser;
-import com.dongyu.movies.utils.player.MyDanmakuLoader;
+import com.dongyu.movies.utils.player.MyAcFunDanmakuLoader;
 import com.dongyu.movies.view.VideoSourceView;
 import com.dongyu.movies.view.player.base.BasePlayer;
 import com.dongyu.movies.view.player.base.PlayerStateListener;
 
+import org.json.JSONObject;
+
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -75,6 +81,7 @@ import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.controller.IDanmakuView;
 import master.flame.danmaku.danmaku.loader.ILoader;
 import master.flame.danmaku.danmaku.loader.IllegalDataException;
+import master.flame.danmaku.danmaku.loader.android.AcFunDanmakuLoader;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import master.flame.danmaku.danmaku.model.IDanmakus;
@@ -82,6 +89,7 @@ import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
+import master.flame.danmaku.danmaku.util.IOUtils;
 import master.flame.danmaku.ui.widget.DanmakuTouchHelper;
 import master.flame.danmaku.ui.widget.DanmakuView;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -154,11 +162,6 @@ public class DongYuPlayer extends BasePlayer {
      * 是否开启投屏
      */
     private boolean isScreencast = false;
-
-    /**
-     * 投屏地址
-     */
-    private String screencastUrl;
 
     private ScreenProjectionDialog screenProjectionDialog;
 
@@ -257,21 +260,37 @@ public class DongYuPlayer extends BasePlayer {
     private void initDanmakuView() {
         // 设置最大显示行数
         Map<Integer, Integer> maxLinesPair = new HashMap<>();
-        maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, 3); // 滚动弹幕最大显示5行
+        int line = Objects.requireNonNull(SpUtils.INSTANCE
+                .getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_DANMAKU_LINE, 3));
+        maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, line);
 
         // 设置是否禁止重叠
         Map<Integer, Boolean> overlappingEnablePair = new HashMap<>();
         overlappingEnablePair.put(BaseDanmaku.TYPE_SCROLL_RL, true);
         overlappingEnablePair.put(BaseDanmaku.TYPE_FIX_TOP, true);
 
+        // 由于参数在PreferenceFragment中进行操作，所以保存在默认的 DEFAULT_KEY中
+        float alpha = Objects.requireNonNull(SpUtils.INSTANCE
+                .getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_DANMAKU_ALPHA, 10)) / 10f;
+
+        float size = Objects.requireNonNull(SpUtils.INSTANCE
+                .getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_DANMAKU_SIZE, 10)) / 10f;
+
+        int margin = Objects.requireNonNull(SpUtils.INSTANCE
+                .getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_DANMAKU_MARGIN, 20));
+
+        float speed = Objects.requireNonNull(SpUtils.INSTANCE
+                .getOrDefault(SpUtils.DEFAULT_KEY, SPConfig.PLAYER_DANMAKU_SPEED, 12)) / 10f;
+
         mDanmakuContext = DanmakuContext.create();
         mDanmakuContext.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3f)
                 .setDuplicateMergingEnabled(false)
-                .setScrollSpeedFactor(1.2f)
-                .setScaleTextSize(1.0f)
+                .setScrollSpeedFactor(speed)
+                .setScaleTextSize(size)
+                .setDanmakuTransparency(alpha)
                 .setMaximumLines(maxLinesPair)
                 .preventOverlapping(overlappingEnablePair)
-                .setDanmakuMargin(20);
+                .setDanmakuMargin(margin);
         mDanmakuView.setCallback(new DrawHandler.Callback() {
             @Override
             public void prepared() {
@@ -318,6 +337,29 @@ public class DongYuPlayer extends BasePlayer {
 
         Boolean isShowDanmaku = SpUtils.INSTANCE.getOrDefault(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, true);
         bottomBinding.danmakuVisible.setText(Boolean.TRUE.equals(isShowDanmaku) ? "弹幕开" : "弹幕关");
+    }
+
+    public void setDanmakuLine(int line) {
+        // 设置最大显示行数
+        Map<Integer, Integer> maxLinesPair = new HashMap<>();
+        maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, line);
+        mDanmakuContext.setMaximumLines(maxLinesPair);
+    }
+
+    public void setDanmakuAlpha(float alpha) {
+        mDanmakuContext.setDanmakuTransparency(alpha);
+    }
+
+    public void setDanmakuSize(float size) {
+        mDanmakuContext.setScaleTextSize(size);
+    }
+
+    public void setDanmakuMargin(int margin) {
+        mDanmakuContext.setDanmakuMargin(margin);
+    }
+
+    public void setDanmakuSpeed(float speed) {
+        mDanmakuContext.setScrollSpeedFactor(speed);
     }
 
     public DongYuPlayer setDanmakus(List<String> danmakus) {
@@ -376,13 +418,19 @@ public class DongYuPlayer extends BasePlayer {
             return;
         }
         Log.d(TAG, "startDanmaku: " + url);
-        ILoader loader = MyDanmakuLoader.instance();
+        ILoader loader = MyAcFunDanmakuLoader.instance();
 
-        IOKt.ioThread(() -> {
+        new Thread(() -> {
+            InputStream inputStream = null;
             try {
-                loader.load(url);
-            } catch (IllegalDataException e) {
+                inputStream = new URL(url).openStream();
+                String json = IOUtils.getString(inputStream);
+                json = new JSONObject(json).getJSONArray("danmuku").toString();
+                loader.load(json);
+            } catch (Exception e) {
                 Log.e(TAG, e.toString());
+            } finally {
+                IOUtils.closeQuietly(inputStream);
             }
             IDataSource<?> dataSource = loader.getDataSource();
 
@@ -390,13 +438,12 @@ public class DongYuPlayer extends BasePlayer {
                 mBaseDanmakuParser.release();
             }
 
-            mBaseDanmakuParser = new BiliDanmukuParser();
+            mBaseDanmakuParser = new AcFunDanmakuParser();
 
             mBaseDanmakuParser.load(dataSource);
 
             mDanmakuView.prepare(mBaseDanmakuParser, mDanmakuContext);
-            return null;
-        });
+        }).start();
     }
 
     private void checkDanmakuCurrentTime() {
@@ -652,7 +699,6 @@ public class DongYuPlayer extends BasePlayer {
                     UtilsKt.showToast("当前视频未加载成功", 2000);
                     return;
                 }
-                screencastUrl = url;
                 screenProjectionDialog = new ScreenProjectionDialog(v.getContext())
                         .setTitle(getTitle().toString())
                         .setUrl(url);
@@ -719,6 +765,16 @@ public class DongYuPlayer extends BasePlayer {
                     sourceItemChangeListener.onSourceItemChanged(item, index);
                     break;
                 }
+            }
+        });
+
+        bottomBinding.portrait.setOnClickListener(v -> {
+            switchPortrait();
+            ImageButton btn = (ImageButton) v;
+            if (isPortrait()) {
+                btn.setImageResource(R.drawable.baseline_unfold_less_24);
+            } else {
+                btn.setImageResource(R.drawable.baseline_unfold_more_24);
             }
         });
     }

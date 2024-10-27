@@ -22,6 +22,7 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".MoviesApplication"
@@ -55,7 +56,7 @@
             android:windowSoftInputMode="adjustNothing" />
         <activity
             android:name=".activity.VideoActivity"
-            android:configChanges="screenSize|orientation" />
+            android:configChanges="screenSize|orientation|smallestScreenSize|screenLayout|layoutDirection" />
         <activity
             android:name=".activity.LoginActivity"
             android:windowSoftInputMode="adjustResize|stateAlwaysVisible" />
@@ -67,7 +68,7 @@
         <activity android:name=".activity.HistoryCollectActivity" />
         <activity
             android:name=".activity.LiveVideoActivity"
-            android:configChanges="screenSize|orientation" />
+            android:configChanges="screenSize|orientation|smallestScreenSize|screenLayout|layoutDirection" />
         <activity android:name=".activity.VideoSourceActivity" />
         <activity android:name=".activity.DownloadActivity"
             android:launchMode="singleTop"/>

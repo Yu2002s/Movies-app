@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <androidx.viewpager.widget.ViewPager
+    <com.dongyu.movies.view.MyViewPager
         android:id="@+id/vp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

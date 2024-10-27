@@ -1,11 +1,14 @@
 package com.dongyu.movies.parser.impl
 
+import android.util.Log
 import com.dongyu.movies.model.movie.MovieDetail
 import com.dongyu.movies.model.movie.MovieItem
+import com.dongyu.movies.model.movie.MovieVideo
 import com.dongyu.movies.model.movie.VideoSource
 import com.dongyu.movies.model.page.PageResult
 import com.dongyu.movies.model.parser.ParserResult
 import com.dongyu.movies.model.parser.PlayParam
+import com.dongyu.movies.model.search.SearchData
 import com.dongyu.movies.parser.SimpleParser
 import org.json.JSONArray
 import org.json.JSONObject
@@ -39,7 +42,7 @@ class MJParser : SimpleParser() {
         )
     }
 
-    override fun parseSearchList(document: Document): ParserResult<PageResult<MovieItem>> {
+    override fun parseSearchList(document: Document): ParserResult<SearchData>? {
         val pageResult = PageResult<MovieItem>()
 
         val panel = requireNonNull(document.selectFirst(".container:nth-child(2) .row .z-pannel"))
@@ -68,7 +71,7 @@ class MJParser : SimpleParser() {
             }
         }
 
-        return ParserResult.success(pageResult)
+        return ParserResult.success(SearchData(pageResult))
     }
 
     override fun parseDetail(document: Document): ParserResult<MovieDetail> {
@@ -86,7 +89,7 @@ class MJParser : SimpleParser() {
 
         val currentSourceItem: VideoSource.Item?
         val sources = mutableListOf<VideoSource>()
-        for (i in 2 until panels.size - 4) {
+        for (i in (if (panels.size > 5) 2 else 1) until (panels.size - (if (panels.size > 5)  4 else 3))) {
             val title = panels[i].selectFirst(".z-pannel_title")?.text() ?: "默认"
             var sourceId: String
             val sourceItems = panels[i].select(".z-vod_list a").mapIndexed { index, it ->
@@ -99,6 +102,7 @@ class MJParser : SimpleParser() {
             val videoSource = VideoSource(sourceId, title, sourceItems)
             sources.add(videoSource)
         }
+
         currentSourceItem = sources.getOrNull(0)?.items?.getOrNull(0)
 
         if (currentSourceItem == null) {
@@ -114,7 +118,7 @@ class MJParser : SimpleParser() {
         )
     }
 
-    override fun parseVideo(document: Document): ParserResult<String> {
+    override fun parseVideo(document: Document): ParserResult<MovieVideo>? {
 
         val html = document.html()
 
@@ -129,7 +133,7 @@ class MJParser : SimpleParser() {
             val playName = source.getString("playname")
             val urls = source.getJSONArray("playurls")
 
-            url = urls.getJSONArray(selection.toInt() - 1).getString(1)
+            url = urls.getJSONArray(selectionId.toInt() - 1).getString(1)
 
             url = parsePlayUrl(playName, url)
         } catch (e: Exception) {
@@ -137,12 +141,12 @@ class MJParser : SimpleParser() {
             val playName = source.getString("playname")
             url = source
                 .getJSONArray("playurls")
-                .getJSONArray(selection.toInt() - 1)
+                .getJSONArray(selectionId.toInt() - 1)
                 .getString(1)
             url = parsePlayUrl(playName, url)
         }
 
-        return ParserResult.success(url)
+        return ParserResult.success(MovieVideo(requireNonNull(url, "解析视频地址失败")))
     }
 
     private fun parsePlayUrl(playerName: String, url: String): String {

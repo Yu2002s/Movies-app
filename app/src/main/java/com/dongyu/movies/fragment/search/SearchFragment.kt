@@ -5,23 +5,27 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
-import android.widget.RadioButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
+import com.alimm.tanx.ui.image.glide.request.target.Target
 import com.bumptech.glide.Glide
+import com.cat.sdk.ad.ADBannerAd
+import com.cat.sdk.ad.ADBannerAd.ADBannerAdListener
+import com.cat.sdk.ad.ADMParams
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.VideoActivity
 import com.dongyu.movies.base.BaseFragment
-import com.dongyu.movies.model.movie.BaseMovieItem
+import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.databinding.FragmentSearchBinding
 import com.dongyu.movies.databinding.ItemListMovieBinding
 import com.dongyu.movies.databinding.ItemSelectMovieBinding
 import com.dongyu.movies.model.movie.MovieItem
 import com.dongyu.movies.model.parser.ParseParam
+import com.dongyu.movies.parser.ParserList
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.SearchViewModel
 import com.drake.brv.utils.bindingAdapter
@@ -43,6 +47,8 @@ class SearchFragment : BaseFragment() {
     private val searchViewModel by viewModels<SearchViewModel>(ownerProducer = {
         requireActivity()
     })
+
+    private var parseId: Int = -1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,8 +77,17 @@ class SearchFragment : BaseFragment() {
             searchViewModel.searchListFlow.collect { result ->
                 Log.d(TAG, "result: $result")
                 result.onSuccess { data ->
-                    refreshLayout.addData(data.result) {
-                        refreshLayout.index < data.lastPage
+                    binding.verifyView.isVisible = data.verifyData != null
+                    binding.content.isVisible = !binding.verifyView.isVisible
+                    data.verifyData?.let {
+                        Glide.with(this@SearchFragment)
+                            .load(it.codeImg ?: it.codeBytes)
+                            .override(Target.SIZE_ORIGINAL)
+                            .into(binding.verifyImg)
+                    }
+                    // 判断需要验证的情况
+                    refreshLayout.addData(data.pageResult.result) {
+                        refreshLayout.index < data.pageResult.lastPage
                     }
                 }.onFailure {
                     Log.e(TAG, it.message.toString())
@@ -85,8 +100,9 @@ class SearchFragment : BaseFragment() {
             addType<MovieResponse.Movie>(R.layout.item_select_movie)
             onBind {
                 val movie = getModel<MovieResponse.Movie>()
-                getBinding<ItemSelectMovieBinding>().root.apply {
-                    isSelected = movie.selected
+                val itemBinding = getBinding<ItemSelectMovieBinding>()
+                itemBinding.root.isSelected = movie.selected
+                itemBinding.tvName.apply {
                     text = movie.name
                     val icon = if (isSelected) ContextCompat.getDrawable(
                         this.context,
@@ -94,8 +110,10 @@ class SearchFragment : BaseFragment() {
                     ) else null
                     setCompoundDrawablesWithIntrinsicBounds(null, null, icon, null)
                 }
+                itemBinding.tvDesc.isVisible = !movie.desc.isNullOrBlank()
+                itemBinding.tvDesc.text = movie.desc
             }
-            R.id.tv_select.onClick {
+            R.id.item_select.onClick {
                 val movie = getModel<MovieResponse.Movie>()
                 models?.forEachIndexed { index, m ->
                     m as MovieResponse.Movie
@@ -107,6 +125,8 @@ class SearchFragment : BaseFragment() {
                 movie.selected = true
                 refresh(movie)
                 notifyItemChanged(modelPosition)
+                binding.content.isVisible = true
+                binding.verifyView.isVisible = false
             }
         }
 
@@ -125,8 +145,8 @@ class SearchFragment : BaseFragment() {
                     movieCover.setRadius(20)
                     status.text = movieItem.status
                     cate.text = movieItem.cate
-                    movieTag.isVisible = movieItem.years.isNotEmpty() && movieItem.area.isNotEmpty()
-                            && movieItem.type.isNotEmpty()
+                    /*movieTag.isVisible = movieItem.years.isNotEmpty() && movieItem.area.isNotEmpty()
+                            && movieItem.type.isNotEmpty()*/
                     movieTag.text = movieItem.years + " " + movieItem.area + " " + movieItem.type
                     movieStar.text = getString(R.string.star).format(movieItem.star)
                     movieDirector.isVisible = movieItem.director.isNotEmpty()
@@ -139,12 +159,18 @@ class SearchFragment : BaseFragment() {
                     requireActivity().finish()
                 }
 
-               val selectMovie = binding.movieRecyclerview.models?.find {
+                val selectMovie = binding.movieRecyclerview.models?.find {
                     it as MovieResponse.Movie
                     it.selected
                 } as MovieResponse.Movie
 
-                VideoActivity.play(ParseParam(movieId = selectMovie.id, detailId = movie.id, tvName = movie.tvName))
+                VideoActivity.play(
+                    ParseParam(
+                        movieId = selectMovie.id,
+                        detailId = movie.id,
+                        tvName = movie.tvName
+                    )
+                )
             }
         }
 
@@ -152,6 +178,54 @@ class SearchFragment : BaseFragment() {
             searchViewModel.searchMovieState.collect {
                 updateMovieList(it)
             }
+        }
+
+        binding.verifyBtn.setOnClickListener {
+            val code = binding.verifyEdit.editText!!.text.toString()
+            searchViewModel.verify(code)
+            binding.verifyView.isVisible = false
+            binding.content.isVisible = true
+            binding.refreshLayout.showLoading()
+        }
+
+        binding.verifyImg.setOnClickListener {
+            binding.refreshLayout.showLoading()
+        }
+
+        loadAdView()
+    }
+
+    private fun loadAdView() {
+        val adView = binding.adView
+        adView.post {
+            val admParams = ADMParams.Builder()
+                .slotId(ADConfig.BANNER_ID)
+                .layout(adView)
+                .width(adView.width)
+                .height(0)
+                .build()
+            val adBannerAd = ADBannerAd(requireActivity(), admParams, object : ADBannerAdListener {
+                override fun onADLoadStart() {}
+
+                override fun onADShow() {}
+
+                override fun onADLoadedFail(code: Int, error: String) {
+                    Log.e("jdy", "onBannerADLoadedFail: $code, error: $error")
+                    adView.isVisible = false
+                }
+
+                override fun onADClick() {
+                    Log.d("jdy", "onADClick")
+                }
+
+                override fun onADLoadSuccess() {
+
+                }
+
+                override fun onADClose() {
+                }
+            })
+            adBannerAd.loadAD()
         }
     }
 

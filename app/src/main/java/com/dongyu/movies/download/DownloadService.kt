@@ -214,6 +214,7 @@ class DownloadService : Service() {
 
             DownloadStatus.ERROR -> {
                 notification.setOngoing(false)
+                notification.setProgress(0, 0, false)
                 notification.setSmallIcon(R.drawable.baseline_close_24)
             }
 

@@ -2,82 +2,140 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreferenceCompat
-        app:defaultValue="true"
-        app:iconSpaceReserved="false"
-        app:key="auto_next"
-        app:summary="视频观看完成时自动播放下一集"
-        app:switchTextOff="关闭"
-        app:switchTextOn="开启"
-        app:title="自动播放下一集" />
+    <PreferenceCategory app:title="基础设置">
 
-    <DropDownPreference
-        app:defaultValue="3.0"
-        app:entries="@array/long_press_speed"
-        app:entryValues="@array/long_press_speed_values"
-        app:iconSpaceReserved="false"
-        app:key="long_press_speed"
-        app:selectable="true"
-        app:summary="长按屏幕时速度倍数"
-        app:title="长按倍速"
-        app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="auto_next"
+            app:summary="视频观看完成时自动播放下一集"
+            app:switchTextOff="关闭"
+            app:switchTextOn="开启"
+            app:title="自动播放下一集" />
 
-    <SwitchPreferenceCompat
-        app:iconSpaceReserved="false"
-        app:key="auto_fullscreen"
-        app:summary="视频加载完成时是否全屏"
-        app:switchTextOff="关闭"
-        app:switchTextOn="开启"
-        app:title="自动全屏" />
+        <DropDownPreference
+            app:defaultValue="3.0"
+            app:entries="@array/long_press_speed"
+            app:entryValues="@array/long_press_speed_values"
+            app:iconSpaceReserved="false"
+            app:key="long_press_speed"
+            app:selectable="true"
+            app:summary="长按屏幕时速度倍数"
+            app:title="长按倍速"
+            app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreferenceCompat
-        app:iconSpaceReserved="false"
-        android:key="small_progress"
-        app:title="小进度条"
-        app:defaultValue="false"
-        android:switchTextOn="开启小进度条"
-        app:switchTextOff="关闭小进度条"
-        android:summary="页面底部的小进度条(重进生效)"/>
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="auto_fullscreen"
+            app:summary="视频加载完成时是否全屏"
+            app:switchTextOff="关闭"
+            app:switchTextOn="开启"
+            app:title="自动全屏" />
 
-    <SwitchPreferenceCompat
-        app:defaultValue="true"
-        app:iconSpaceReserved="false"
-        app:key="auto_switch_route"
-        app:summary="解析视频失败时自动切换线路"
-        app:switchTextOff="关闭"
-        app:switchTextOn="开启"
-        app:title="自动切换解析" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            android:key="small_progress"
+            app:title="小进度条"
+            app:defaultValue="false"
+            android:switchTextOn="开启小进度条"
+            app:switchTextOff="关闭小进度条"
+            android:summary="页面底部的小进度条(重进生效)"/>
 
-    <SwitchPreferenceCompat
-        app:allowDividerAbove="true"
-        app:iconSpaceReserved="false"
-        app:key="skip_start"
-        app:title="跳过片头" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="auto_switch_route"
+            app:summary="解析视频失败时自动切换线路"
+            app:switchTextOff="关闭"
+            app:switchTextOn="开启"
+            app:title="自动切换解析" />
 
-    <SeekBarPreference
-        android:max="300000"
-        app:defaultValue="0"
-        app:dependency="skip_start"
-        app:iconSpaceReserved="false"
-        app:key="skip_start_time"
-        app:seekBarIncrement="1000"
-        app:title="片头跳过时机"
-        app:updatesContinuously="true" />
+    </PreferenceCategory>
 
-    <SwitchPreferenceCompat
-        app:allowDividerAbove="true"
-        app:iconSpaceReserved="false"
-        app:key="skip_end"
-        app:title="跳过片尾" />
+    <PreferenceCategory app:title="时间设置">
 
-    <SeekBarPreference
-        app:defaultValue="0"
-        android:max="300000"
-        app:dependency="skip_end"
-        app:iconSpaceReserved="false"
-        app:key="skip_end_time"
-        app:seekBarIncrement="1000"
-        app:title="片尾跳过时机"
-        app:updatesContinuously="true" />
+        <SwitchPreferenceCompat
+            app:allowDividerAbove="true"
+            app:iconSpaceReserved="false"
+            app:key="skip_start"
+            app:title="跳过片头" />
+
+        <SeekBarPreference
+            android:max="300000"
+            app:defaultValue="0"
+            app:dependency="skip_start"
+            app:iconSpaceReserved="false"
+            app:key="skip_start_time"
+            app:seekBarIncrement="1000"
+            app:title="片头跳过时机"
+            app:updatesContinuously="true" />
+
+        <SwitchPreferenceCompat
+            app:allowDividerAbove="true"
+            app:iconSpaceReserved="false"
+            app:key="skip_end"
+            app:title="跳过片尾" />
+
+        <SeekBarPreference
+            app:defaultValue="0"
+            android:max="300000"
+            app:dependency="skip_end"
+            app:iconSpaceReserved="false"
+            app:key="skip_end_time"
+            app:seekBarIncrement="1000"
+            app:title="片尾跳过时机"
+            app:updatesContinuously="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="弹幕设置">
+
+        <SeekBarPreference
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"
+            android:max="15"
+            app:min="1"
+            app:defaultValue="3"
+            app:key="danmaku_line"
+            app:title="弹幕展示行数" />
+
+        <SeekBarPreference
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"
+            android:max="10"
+            app:min="1"
+            app:defaultValue="10"
+            app:key="danmaku_alpha"
+            app:title="弹幕透明度" />
+
+        <SeekBarPreference
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"
+            android:max="20"
+            app:min="1"
+            app:defaultValue="10"
+            app:key="danmaku_size"
+            app:title="弹幕大小" />
+
+        <SeekBarPreference
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"
+            android:max="40"
+            app:min="1"
+            app:defaultValue="20"
+            app:key="danmaku_margin"
+            app:title="弹幕间距" />
+
+        <SeekBarPreference
+            app:summary="快  &lt;&lt;-   -&gt;&gt;  慢"
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false"
+            android:max="25"
+            app:min="1"
+            app:defaultValue="12"
+            app:key="danmaku_speed"
+            app:title="弹幕滚动速度" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

@@ -1,5 +1,7 @@
 package com.dongyu.movies.model.movie
 
+import android.util.Log
+
 /**
  * 影视列表响应实体类
  */
@@ -54,7 +56,12 @@ data class MovieResponse(
         /**
          * 默认线路id
          */
-        val defaultRouteId: Int,
+        val desc: String?,
+
+        /**
+         * 验证地址
+         */
+        val verifyUrl: String? = null,
 
         /**
          * 搜索时选中状态
@@ -62,18 +69,24 @@ data class MovieResponse(
         var selected: Boolean = false
     ) {
 
-        val fullClassifyUrl: String
-            get() = host + classifyUrl
+        /**
+         * 对后台返回的地址进行处理
+         */
+        private fun getRealUrl(url: String): String {
+            return if (url.startsWith("http")) url else host + url
+        }
 
+        val fullClassifyUrl: String
+            get() = getRealUrl(classifyUrl)
 
         val fullSearchUrl: String
-            get() = host + searchUrl
+            get() = getRealUrl(searchUrl)
 
         val fullDetailUrl: String
-            get() = host + detailUrl
+            get() = getRealUrl(detailUrl)
 
         val fullVideoUrl: String
-            get() = host + videoUrl
+            get() = getRealUrl(videoUrl)
     }
 
 }

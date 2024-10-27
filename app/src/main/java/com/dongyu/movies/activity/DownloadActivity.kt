@@ -67,13 +67,21 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
                 val model = getModel<Download>()
                 getBinding<ItemListDownloadBinding>().apply {
                     name.text = model.name
-                    status.text = model.statusStr + " " + formatBytes(model.currentByte) + " " + model.progress + "%"
+                    status.text =
+                        model.statusStr + " " + formatBytes(model.currentByte) + " " + model.progress + "%"
                     sw.setImageResource(
                         if (model.status == DownloadStatus.DOWNLOADING)
                             R.drawable.baseline_pause_circle_outline_24
                         else R.drawable.baseline_arrow_circle_down_24
                     )
                     sw.isVisible = model.status != DownloadStatus.COMPLETED
+                    if (model.progress == 0 && model.isDownloading) {
+                        progressBar.isIndeterminate = true
+                    } else {
+                        progressBar.isIndeterminate = false
+                        progressBar.setProgressCompat(model.progress, true)
+                    }
+                    progressBar.isVisible = model.status != DownloadStatus.COMPLETED
                 }
             }
 
@@ -99,9 +107,10 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
             lifecycleScope.launch {
                 val offset = (index - 1) * 10
                 val downloads = withContext(Dispatchers.IO) {
-                    LitePal.offset(offset).limit(10).order("updateAt desc").find<Download>().onEach { download ->
-                        download.status = downloadService.getDownloadStatus(download)
-                    }
+                    LitePal.offset(offset).limit(10).order("updateAt desc").find<Download>()
+                        .onEach { download ->
+                            download.status = downloadService.getDownloadStatus(download)
+                        }
                 }
                 addData(downloads)
             }
@@ -111,7 +120,12 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
                 "请授权访问存储空间以下载文件".showToast()
-                startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, "package:$packageName".toUri()))
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        "package:$packageName".toUri()
+                    )
+                )
             }
         }
     }

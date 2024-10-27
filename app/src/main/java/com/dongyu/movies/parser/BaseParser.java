@@ -1,8 +1,11 @@
 package com.dongyu.movies.parser;
 
+import android.annotation.SuppressLint;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,33 +15,27 @@ import com.dongyu.movies.model.home.ClassifyQueryParam;
 import com.dongyu.movies.model.home.FilterData;
 import com.dongyu.movies.model.home.MainData;
 import com.dongyu.movies.model.movie.MovieDetail;
-import com.dongyu.movies.model.movie.MovieItem;
-import com.dongyu.movies.model.page.PageResult;
+import com.dongyu.movies.model.movie.MovieVideo;
 import com.dongyu.movies.model.parser.ParserResult;
 import com.dongyu.movies.model.parser.PlayParam;
-import com.dongyu.movies.network.Repository;
-import com.dongyu.movies.utils.AESUtils;
+import com.dongyu.movies.model.search.SearchData;
 import com.dongyu.movies.utils.IpUtil;
-import com.dongyu.movies.utils.Md5Utils;
 
-import org.json.JSONObject;
 import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * 基础解析器
@@ -92,14 +89,15 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      */
     public static final String PARAM_SELECTION = "selectionId";
 
-    public static final String[] filterTypes = new String[]{
-            FilterData.FILTER_TYPE,
-            FilterData.FILTER_AREA,
-            FilterData.FILTER_LANGUAGE,
-            FilterData.FILTER_LETTER,
-            FilterData.FILTER_YEAR,
-            FilterData.FILTER_SORT
-    };
+    /**
+     * 验证码参数
+     */
+    public static final String PARAM_VERIFY_CODE = "verify_code";
+
+    /**
+     * 验证地址参数
+     */
+    public static final String PARAM_VERIFY_URL = "verify_url";
 
     public static Map<String, String> filterMap = new HashMap<>();
 
@@ -131,7 +129,7 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     /**
      * 解析地址所需的一些参数
      */
-    private Map<String, Object> params;
+    private Map<String, Object> params = new ArrayMap<>();
 
     /**
      * 分类筛选参数
@@ -142,11 +140,6 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      * 解析类型
      */
     private TYPE type;
-
-    /**
-     * 储存Cookie在内存中
-     */
-    private final Map<String, String> cookieMap = new ArrayMap<>();
 
     /**
      * 获取网站地址（未进行解析的地址）
@@ -173,6 +166,27 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      */
     public String getParseUrl() {
         return parseUrl;
+    }
+
+    protected BaseParser<T> setParseUrl(String url) {
+        this.parseUrl = url;
+        URL domain;
+        try {
+            domain = new URL(parseUrl);
+        } catch (MalformedURLException e) {
+            return this;
+        }
+        // 这里获取网站主机信息
+        this.host = domain.getProtocol() + "://" + domain.getHost();
+        if (domain.getPort() != -1) {
+            this.host += ":" + domain.getPort();
+        }
+        return this;
+    }
+
+    protected BaseParser<T> setType(TYPE type) {
+        this.type = type;
+        return this;
     }
 
     /**
@@ -238,7 +252,7 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         /**
          * 分类页
          */
-        CLASSIFY
+        CLASSIFY,
     }
 
     /**
@@ -282,9 +296,6 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      * @return BaseParser
      */
     public final BaseParser<T> setParam(String key, Object value) {
-        if (params == null) {
-            params = new HashMap<>();
-        }
         params.put(key, value);
         return this;
     }
@@ -351,12 +362,30 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         return setParam(PARAM_ROUTE_ID, routeId);
     }
 
-    public final String getSelection() {
+    public final String getSelectionId() {
         return getStringParam(PARAM_SELECTION);
     }
 
     public BaseParser<T> setSelectionId(String selection) {
         return setParam(PARAM_SELECTION, selection);
+    }
+
+    public BaseParser<T> setVerifyCode(String code) {
+        return setParam(PARAM_VERIFY_CODE, code);
+    }
+
+    @Nullable
+    public final String getVerifyCode() {
+        return getStringParamOrNull(PARAM_VERIFY_CODE);
+    }
+
+    public BaseParser<T> setVerifyUrl(String verifyUrl) {
+        return setParam(PARAM_VERIFY_URL, verifyUrl);
+    }
+
+    @Nullable
+    public final String getVerifyUrl() {
+        return getStringParamOrNull(PARAM_VERIFY_URL);
     }
 
     @Nullable
@@ -372,6 +401,15 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         return (String) getParam(key);
     }
 
+    @Nullable
+    public final String getStringParamOrNull(String key) {
+        Object param = getParam(key);
+        if (param == null) {
+            return null;
+        }
+        return getStringParam(key);
+    }
+
     /**
      * 通过未解析的地址和解析类型，获取到解析之后的地址
      *
@@ -385,9 +423,9 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
             case SEARCH:
                 return getSearchListUrl(url, getName(), getPage());
             case DETAIL:
-                // TODO: 2024/9/7 需要将详情页和播放地址解析分开
+                // TODO: 2024/10/18 暂时将详情和播放一起解析（可能有问题）
             case VIDEO:
-                return getParseDetailUrl(url, getDetailId(), getSourceId(), getSelection());
+                return getParseDetailUrl(url, getDetailId(), getSourceId(), getSelectionId());
             // 分类页单独处理
             case CLASSIFY:
                 return getParseClassifyUrl(url, classifyQueryParam);
@@ -396,16 +434,22 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         return url;
     }
 
-    private String parseUrlForParams() {
+    private String parseUrlForParams(String url) {
         if (TextUtils.isEmpty(url)) {
             throw new NullPointerException("需要解析的地址为空");
+        }
+        if (params == null || params.isEmpty()) {
+            return url;
         }
         String parsedUrl = url;
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             String key = "{" + entry.getKey() + "}";
             String value;
             Object valuePram = entry.getValue();
-            if (valuePram instanceof String) {
+            // 把null转换为空字符串（可能时多余操作，预防错误）
+            if (valuePram == null) {
+                value = "";
+            } else if (valuePram instanceof String) {
                 value = (String) valuePram;
             } else {
                 value = String.valueOf(valuePram);
@@ -459,7 +503,7 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     @Nullable
     public String getSearchListUrl(String url, String name, Integer page) {
         // https://localhost:21/vod/play/{detailId}/{page}/{selection}
-        return parseUrlForParams();
+        return parseUrlForParams(url);
     }
 
     /**
@@ -473,7 +517,7 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      */
     @Nullable
     public String getParseDetailUrl(String url, String detailId, String routeId, String selection) {
-        return parseUrlForParams();
+        return parseUrlForParams(url);
     }
 
     /**
@@ -506,18 +550,19 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         Matcher matcher = pattern.matcher(href);
         if (matcher.find()) {
             String detailId = matcher.group(1);
-            String routeId = matcher.group(2);
+            String sourceId = matcher.group(2);
             String selectionId = matcher.group(3);
             assert detailId != null : "detailId";
-            assert routeId != null : "routeId";
+            assert sourceId != null : "sourceId";
             assert selectionId != null : "selectionId";
-            return new PlayParam(detailId, routeId, selectionId);
+            return new PlayParam(detailId, sourceId, selectionId);
         }
         return null;
     }
 
     /**
      * 通过评分获取排序id
+     *
      * @param name 名称
      * @return id
      */
@@ -543,12 +588,15 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     }
 
     @Override
-    public ParserResult<PageResult<MovieItem>> getSearchList() {
+    public ParserResult<SearchData> getSearchList() {
+        if (!verify()) {
+            return ParserResult.error("验证失败");
+        }
         Document document = getDocument(TYPE.SEARCH);
         return document == null ? ParserResult.error(null) : parseSearchList(document);
     }
 
-    public abstract ParserResult<PageResult<MovieItem>> parseSearchList(Document document);
+    public abstract ParserResult<SearchData> parseSearchList(Document document);
 
     @Override
     public ParserResult<MovieDetail> getDetail() {
@@ -559,12 +607,12 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     public abstract ParserResult<MovieDetail> parseDetail(Document document);
 
     @Override
-    public ParserResult<String> getVideo() {
+    public ParserResult<MovieVideo> getVideo() {
         Document document = getDocument(TYPE.VIDEO);
         return document == null ? ParserResult.error(null) : parseVideo(document);
     }
 
-    public abstract ParserResult<String> parseVideo(Document document);
+    public abstract ParserResult<MovieVideo> parseVideo(Document document);
 
     @Override
     public ParserResult<MainData> getMain() {
@@ -581,6 +629,27 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
     }
 
     public abstract ParserResult<CategoryData> parseClassify(Document document, boolean notParams);
+
+    /**
+     * 验证码验证
+     */
+    public boolean verify() {
+        String verifyCode = getVerifyCode();
+        String verifyUrl = getVerifyUrl();
+        Log.d(TAG, "verifyCode: " + verifyCode + ", verifyUrl: " + verifyUrl);
+        if (!TextUtils.isEmpty(verifyCode) && !TextUtils.isEmpty(verifyUrl)) {
+            // 需要多余的操作进行验证
+            String reqUrl = (host + verifyUrl).replace("{" + PARAM_VERIFY_CODE + "}", verifyCode);
+            Log.d(TAG, "reqUrl: " + reqUrl);
+            return onVerify(getResponseBody(reqUrl));
+        }
+        return true;
+    }
+
+    public boolean onVerify(String result) {
+        Log.d(TAG, "onVerify: " + result);
+        return result != null;
+    }
 
     /**
      * 获取有没有设置分类所需的过滤参数
@@ -605,31 +674,133 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
         return getDocument(parseUrl);
     }
 
+    @Nullable
+    public String getResponseBody(String parseUrl) {
+        try {
+            Connection.Response response = createSimpleConnection(parseUrl).execute();
+            String cookie = getCookieForMap(response.cookies());
+            setConnectionCookie(cookie);
+            return response.body();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     /**
      * 获取网站的文档结构对象，用于解析
      *
-     * @param parserUrl 解析地址
+     * @param parseUrl 解析地址
      * @return 浏览器Document
      */
-    public Document getDocument(String parserUrl) {
+    public Document getDocument(String parseUrl) {
         try {
-            URL domain = new URL(parserUrl);
+            URL domain = new URL(parseUrl);
             // 这里获取网站主机信息
             this.host = domain.getProtocol() + "://" + domain.getHost();
             if (domain.getPort() != -1) {
                 this.host += ":" + domain.getPort();
             }
-            Log.i(TAG, "getDocument: " + parserUrl);
+            Log.i(TAG, "getDocument: " + parseUrl);
             Connection connection = createConnection(parseUrl);
             Document document = connection.get();
             Connection.Response response = connection.response();
-            String setCookie = response.header("Set-Cookie");
-            if (!TextUtils.isEmpty(setCookie)) {
-                cookieMap.put(host, setCookie);
-            }
+            String cookie = getCookieForMap(response.cookies());
+            setConnectionCookie(cookie);
             return document;
         } catch (IOException e) {
+            if (e instanceof HttpStatusException || e instanceof SocketException) {
+                String html = WebViewTool.INSTANCE.load(parseUrl);
+                if (html == null) {
+                    return null;
+                }
+                return Jsoup.parse(html);
+            }
             Log.e(TAG, "getDocument:" + e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取当前连接的cookie数据
+     *
+     * @return cookie
+     */
+    private String getConnectionCookie() {
+        return CookieManager.getInstance().getCookie(host);
+    }
+
+    /**
+     * 携带cookie到请求头中
+     *
+     * @param connection 连接对象
+     * @param cookie     完整cookie数据
+     */
+    protected void setConnectionCookie(Connection connection, String cookie) {
+        if (TextUtils.isEmpty(cookie)) {
+            return;
+        }
+        Log.d(TAG, this.host + " getCookie: " + cookie);
+        connection.header("Cookie", cookie);
+    }
+
+    /**
+     * 保存Cookie
+     *
+     * @param cookie 需要保存的cookie数据
+     */
+    private void setConnectionCookie(String cookie) {
+        if (TextUtils.isEmpty(cookie)) {
+            return;
+        }
+        Log.d(TAG, host + " saveCookie: " + cookie);
+        CookieManager.getInstance().setCookie(host, cookie);
+    }
+
+    /**
+     * 通过cookieMap获取cookie信息
+     *
+     * @param cookieMap cookie表
+     * @return 完整cookie信息
+     */
+    protected String getCookieForMap(Map<String, String> cookieMap) {
+        if (cookieMap.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        int i = 0;
+        for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
+            builder.append(entry.getKey());
+            builder.append("=");
+            builder.append(entry.getValue());
+            if (i != cookieMap.size() - 1) {
+                builder.append("; ");
+            }
+            i++;
+        }
+        return builder.toString();
+    }
+
+    /**
+     * 构建普通连接
+     *
+     * @param url 加载地址
+     * @return 连接对象
+     */
+    public Connection createSimpleConnection(String url) {
+        return createConnection(url).ignoreContentType(true);
+    }
+
+    /**
+     * 通过url获取响应的字节数据
+     *
+     * @param url 请求地址
+     * @return 字节数据
+     */
+    @Nullable
+    public byte[] getResponseBytes(String url)  {
+        try {
+            return createSimpleConnection(url).execute().bodyAsBytes();
+        } catch (Exception e) {
             return null;
         }
     }
@@ -641,28 +812,28 @@ public abstract class BaseParser<T> implements HtmlParseable<T> {
      * @return 连接对象
      */
     protected Connection createConnection(String parseUrl) {
+        Connection connection = Jsoup.connect(parseUrl);
+        String cookie = getConnectionCookie();
+        setConnectionCookie(connection, cookie);
+        addConnectionHeaders(connection);
+        connection.timeout(MAX_TIMEOUT);
+        return connection;
+    }
+
+    protected void addConnectionHeaders(Connection connection) {
         String ip = IpUtil.getRandomChinaIP();
-        Connection connect = Jsoup.connect(parseUrl);
-        String cookie = cookieMap.get(this.host);
-        if (!TextUtils.isEmpty(cookie)) {
-            connect.header("Cookie", cookie);
-        }
-        connect.userAgent(USER_AGENT);
-        connect.header("Connection", "keep-alive");
-        connect.header("Accept-Encoding", "gzip, deflate, br");
-        connect.header("Accept", ACCEPT);
-        connect.header("Accept-Language", ACCEPT_LANGUAGE);
-        connect.header("X-Forwarded-For", ip);
-        connect.header("HTTP_X_FORWARDED_FOR", ip);
-        connect.header("HTTP_CLIENT_IP", ip);
-        connect.header("REMOTE_ADDR", ip);
-        connect.header("X-Real-IP", ip);
-        connect.header("X-Originating-IP", ip);
-        connect.header("Proxy-Client-IP", ip);
-        connect.header("X-Remote-IP", ip);
-        connect.header("WL-Proxy-Client-IP", ip);
-        connect.timeout(MAX_TIMEOUT);
-        return connect;
+        connection.userAgent(USER_AGENT);
+        connection.header("Accept", ACCEPT);
+        connection.header("Accept-Language", ACCEPT_LANGUAGE);
+        connection.header("X-Forwarded-For", ip);
+        connection.header("HTTP_X_FORWARDED_FOR", ip);
+        connection.header("HTTP_CLIENT_IP", ip);
+        connection.header("REMOTE_ADDR", ip);
+        connection.header("X-Real-IP", ip);
+        connection.header("X-Originating-IP", ip);
+        connection.header("Proxy-Client-IP", ip);
+        connection.header("X-Remote-IP", ip);
+        connection.header("WL-Proxy-Client-IP", ip);
     }
 
     @NonNull
