@@ -9,7 +9,7 @@ data class Update(
     val url: String?,
     val content: String,
     val altUrl: String,
-    val updateAt: Date
+    val updateAt: String
 ) {
     data class Download(
         /**

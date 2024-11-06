@@ -35,7 +35,7 @@ public class VideoSourceView extends LinearLayoutCompat {
 
     private TabLayout tab;
 
-    private ViewPager vp;
+    private MyViewPager vp;
 
     /**
      * 是否是最后的源项
@@ -66,6 +66,11 @@ public class VideoSourceView extends LinearLayoutCompat {
      */
     private int currentSourceItemPosition = -1;
 
+    /**
+     * pager是否自适应高度
+     */
+    private boolean pagerAutoHeight = true;
+
     private final List<VideoSource> videoSources = new ArrayList<>();
 
     private final List<RecyclerView> sourceViews = new ArrayList<>();
@@ -89,6 +94,15 @@ public class VideoSourceView extends LinearLayoutCompat {
 
     public void setSourceItemChangeListener(OnSourceItemChangeListener sourceItemChangeListener) {
         this.sourceItemChangeListener = sourceItemChangeListener;
+    }
+
+    /**
+     * 设置pager高度为自适应
+     * @param autoHeight 是否自适应
+     */
+    public void setPagerAutoHeight(boolean autoHeight) {
+        this.pagerAutoHeight = autoHeight;
+        vp.setAutoHeight(pagerAutoHeight);
     }
 
     public VideoSourceView submitList(List<VideoSource> list, boolean init, OnSourceItemChangeListener listener) {

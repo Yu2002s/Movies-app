@@ -9,11 +9,13 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.dongyu.movies.R
 import com.dongyu.movies.utils.getWindowHeight
+import com.dongyu.movies.utils.getWindowWidth
 
 class BaseAppCompatDialog(context: Context): AppCompatDialog(context) {
 
     init {
         val windowHeight = getWindowHeight()
+        // val windowWidth = getWindowWidth()
         setCanceledOnTouchOutside(true)
         window?.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
         window?.attributes?.apply {

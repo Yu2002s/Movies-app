@@ -19,6 +19,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
@@ -159,6 +160,7 @@ class MainActivity : BaseActivity() {
                 show()
             }
         }.onFailure {
+            Log.e(TAG, "update error: $it")
             MaterialAlertDialogBuilder(this).apply {
                 setTitle("检查更新失败")
                 setMessage("服务器可能维护升级中...请耐心等待！请检查网络后尝试重新打开或使用备用地址更新")
@@ -208,7 +210,7 @@ class MainActivity : BaseActivity() {
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "冬雨影视${update.versionName}.apk")
                 val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                 downloadManager.enqueue(request)
-                "正在下载更新，请留意通知栏下载进度".showToast()
+                "正在下载更新，请留意通知栏下载进度".showToast(Toast.LENGTH_LONG)
             }.onFailure {
                 Log.e(TAG, "getUpdateUrl: $it")
                 externalDownload()

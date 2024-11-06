@@ -731,6 +731,7 @@ public class DongYuPlayer extends BasePlayer {
                 return;
             }
             VideoSourceView videoSourceView = new VideoSourceView(getContext());
+            videoSourceView.setPagerAutoHeight(false);
             videoSourceView.submitList(videoSources, (item, position) -> {
                 if (sourceItemChangeListener != null) {
                     sourceItemChangeListener.onSourceItemChanged(item, position);

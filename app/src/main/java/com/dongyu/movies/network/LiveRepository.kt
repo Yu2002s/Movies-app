@@ -1,6 +1,6 @@
 package com.dongyu.movies.network
 
-import com.dongyu.movies.model.movie.LiveSource
+import com.dongyu.movies.model.movie.LiveSourceItem
 import okhttp3.Request
 
 object LiveRepository {
@@ -18,12 +18,21 @@ object LiveRepository {
 
     private val PARAM_REGEX = "(.+)=\"(.+)\"".toRegex()
 
-    fun getSourceList() = getSourceList(LIVE_M3U_HOST)
+    private val liveSourceService = Repository.liveSourceService
 
     /**
      * 获取直播源列表
      */
-    fun getSourceList(source: String) = requestSimpleFlow {
+    suspend fun getSourceList() = requestFlow {
+        liveSourceService.getSourceList()
+    }
+
+    fun getSourceItemList() = getSourceItemList(LIVE_M3U_HOST)
+
+    /**
+     * 获取直播源下的item列表
+     */
+    fun getSourceItemList(source: String) = requestSimpleFlow {
         val request = Request.Builder()
             .url(source)
             .build()
@@ -46,7 +55,7 @@ object LiveRepository {
 
             val title = it.destructured.component2()
             val url = it.destructured.component3()
-            LiveSource(id, title, groupTitle, logo, url)
+            LiveSourceItem(id, title, groupTitle, logo, url)
         }.toList()
     }
 }

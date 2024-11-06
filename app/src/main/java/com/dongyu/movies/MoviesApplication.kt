@@ -11,6 +11,7 @@ import com.dongyu.movies.utils.ContextUtils
 import com.dongyu.movies.utils.EncryptUtils
 import com.dongyu.movies.utils.SSLIgnore
 import com.drake.statelayout.StateConfig
+import com.kwad.sdk.oaid.OADIDSDKHelper
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout

@@ -1,7 +1,7 @@
 package com.dongyu.movies.fragment
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,8 +11,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.dongyu.movies.databinding.FragmentLiveBinding
-import com.dongyu.movies.model.movie.LiveItem
+import com.dongyu.movies.model.movie.LiveSource
 import com.dongyu.movies.network.LiveRepository
+import com.dongyu.movies.utils.showToast
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.launch
 
@@ -21,13 +22,7 @@ class LiveFragment : Fragment() {
     private var _binding: FragmentLiveBinding? = null
     private val binding get() = _binding!!
 
-    private val liveItems = mutableListOf(
-        LiveItem("默认", "https://cdn.jsdelivr.net/gh/BurningC4/Chinese-IPTV@master/TV-IPV4.m3u"),
-        LiveItem("默认2", "https://ghp.ci/raw.githubusercontent.com/joevess/IPTV/main/home.m3u8"),
-        LiveItem("默认3", "https://ghp.ci/raw.githubusercontent.com/joevess/IPTV/main/sources/iptv_sources.m3u8"),
-        LiveItem("默认(IPV6)", LiveRepository.LIVE_M3U_HOST),
-        LiveItem("IPTV", "https://iptv-org.github.io/iptv/index.m3u")
-    )
+    private val liveSources = mutableListOf<LiveSource>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,13 +33,15 @@ class LiveFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.viewpager.adapter = LiveListAdapter()
+        val liveAdapter = LiveListAdapter()
+        binding.viewpager.adapter = liveAdapter
 
         TabLayoutMediator(binding.tabLayout, binding.viewpager) { tab, position ->
-            tab.text = liveItems[position].title
+            tab.text = liveSources[position].title
         }.attach()
 
         val searchItem = binding.toolbar.menu.getItem(0)
@@ -61,6 +58,18 @@ class LiveFragment : Fragment() {
                 return false
             }
         })
+
+        lifecycleScope.launch {
+            LiveRepository.getSourceList().collect {
+                it.onSuccess { data ->
+                    liveSources.clear()
+                    liveSources.addAll(data)
+                    liveAdapter.notifyDataSetChanged()
+                }.onFailure { err ->
+                    err.message.showToast()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -70,10 +79,10 @@ class LiveFragment : Fragment() {
 
     private inner class LiveListAdapter : FragmentStateAdapter(childFragmentManager, lifecycle) {
 
-        override fun getItemCount() = liveItems.size
+        override fun getItemCount() = liveSources.size
 
         override fun createFragment(position: Int) =
-            LiveSourcesFragment.newInstance(liveItems[position].source)
+            LiveSourcesFragment.newInstance(liveSources[position].url)
 
     }
 

@@ -4,6 +4,7 @@ import android.os.Looper
 import com.baidu.mobads.proxy.BuildConfig
 import com.dongyu.movies.activity.LoginActivity
 import com.dongyu.movies.api.AppService
+import com.dongyu.movies.api.LiveSourceService
 import com.dongyu.movies.api.MovieService
 import com.dongyu.movies.api.ParseService
 import com.dongyu.movies.api.UserService
@@ -88,8 +89,8 @@ object Repository {
     private const val API_HOST_DEBUG = "http://192.168.31.138"
     private const val API_HOST_RELEASE = "http://movies.jdynb.xyz"
 
-    private val BASE_URL = API_HOST_DEBUG
-    // if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
+    private val BASE_URL = //API_HOST_DEBUG
+    if (BuildConfig.BUILD_TYPE == "debug") API_HOST_DEBUG else API_HOST_RELEASE
 
     private const val SP_USER = "user"
     private const val KEY_USER_ID = "id"
@@ -234,4 +235,6 @@ object Repository {
     val parseService = retrofit.create<ParseService>()
 
     val appService = retrofit.create<AppService>()
+
+    val liveSourceService = retrofit.create<LiveSourceService>()
 }
