@@ -7,6 +7,7 @@ import com.dongyu.movies.parser.impl.KeKeParser;
 import com.dongyu.movies.parser.impl.MJParser;
 import com.dongyu.movies.parser.impl.MxThemeParser;
 import com.dongyu.movies.parser.impl.MxThemeParser2;
+import com.dongyu.movies.parser.impl.XZParser;
 import com.dongyu.movies.parser.impl.YJParser;
 
 public enum ParserList {
@@ -18,7 +19,8 @@ public enum ParserList {
     CC(5, new CCParser()),
     YJ(6, new YJParser()),
     DD(7, new DDParser()),
-    DB(8, new DouBanParser());
+    DB(8, new DouBanParser()),
+    XZ(9, new XZParser());
 
     /**
      * 唯一的解析id

@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -54,7 +53,6 @@ import com.dongyu.movies.utils.SpUtils;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.utils.UtilsKt;
 import com.dongyu.movies.utils.player.AcFunDanmakuParser;
-import com.dongyu.movies.utils.player.BiliDanmukuParser;
 import com.dongyu.movies.utils.player.MyAcFunDanmakuLoader;
 import com.dongyu.movies.view.VideoSourceView;
 import com.dongyu.movies.view.player.base.BasePlayer;
@@ -64,7 +62,6 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,8 +77,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.controller.IDanmakuView;
 import master.flame.danmaku.danmaku.loader.ILoader;
-import master.flame.danmaku.danmaku.loader.IllegalDataException;
-import master.flame.danmaku.danmaku.loader.android.AcFunDanmakuLoader;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
 import master.flame.danmaku.danmaku.model.IDanmakus;
@@ -227,6 +222,11 @@ public class DongYuPlayer extends BasePlayer {
     private void setPlayerPadding(boolean isFullScreen) {
         // int paddingTop = isFullScreen ? getStatusBarHeight() : getStatusBarHeight() + 30;
         int paddingBottom = isFullScreen ? FULLSCREEN_PADDING_BOTTOM : DEFAULT_PADDING_BOTTOM;
+
+        if (!isFullScreen && isPortrait()) {
+            paddingBottom += getNavigationBarHeight();
+        }
+
         int paddingHorizontal = isFullScreen ? FULLSCREEN_PADDING_HORIZONTAL : DEFAULT_PADDING_HORIZONTAL;
 
         LinearLayout header = headerBinding.getRoot();
@@ -376,8 +376,9 @@ public class DongYuPlayer extends BasePlayer {
     }
 
     public void startDanmaku(int position) {
-        Log.d(TAG, "startDanmaku, position: " + position);
+        Log.d(TAG, "startDanmaku, position: " + position + ", urls: " + mDanmakuUrlList);
         if (position < 0 || position >= mDanmakuUrlList.size()) {
+            Log.e(TAG, "弹幕装填异常");
             return;
         }
         startDanmaku(mDanmakuUrlList.get(position));
@@ -391,17 +392,18 @@ public class DongYuPlayer extends BasePlayer {
         return mDanmakuView.isPrepared();
     }
 
-    public void showDanmaku() {
+    public boolean showDanmaku() {
+        SpUtils.INSTANCE.put(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, true);
+        bottomBinding.danmakuVisible.setText("弹幕开");
         if (mDanmakuUrlList.isEmpty()) {
-            return;
+            Log.e(TAG, "danmakuUrls is empty");
+            return false;
         }
-        if (!isShowDanmaku() && mDanmakuView.isPrepared()) {
+        if (!isShowDanmaku()) {
             mDanmakuView.show();
             checkDanmakuCurrentTime();
         }
-
-        SpUtils.INSTANCE.put(SP_NAME, SPConfig.PLAYER_SHOW_DANMAKU, true);
-        bottomBinding.danmakuVisible.setText("弹幕开");
+        return true;
     }
 
     public void hideDanmaku() {
@@ -563,7 +565,7 @@ public class DongYuPlayer extends BasePlayer {
     private void initVisibilityMode(View header, View middle,
                                     LayoutControlBottomBinding bottom) {
         visibilityMap.put(VisibilityMode.VISIBILITY_ALL,
-                Arrays.asList(header, middle, bottom.getRoot()));
+                Arrays.asList(header, middle, bottom.getRoot(), middleBinding.btnLock, middleBinding.btnLock2));
         visibilityMap.put(VisibilityMode.VISIBILITY_HEADER,
                 Collections.singletonList(header));
         visibilityMap.put(VisibilityMode.VISIBILITY_BOTTOM,
@@ -970,8 +972,8 @@ public class DongYuPlayer extends BasePlayer {
     }
 
     @Override
-    protected void onInsetChanged(int statusBarHeight) {
-        super.onInsetChanged(statusBarHeight);
+    protected void onInsetChanged(int statusBarHeight, int navigationBarHeight) {
+        super.onInsetChanged(statusBarHeight, navigationBarHeight);
         FrameLayout statusBar = statusBarBinding.getRoot();
         ViewGroup.LayoutParams statusBarLayoutParams = statusBar.getLayoutParams();
         statusBarLayoutParams.height = statusBarHeight + 30;
@@ -1244,6 +1246,24 @@ public class DongYuPlayer extends BasePlayer {
                     layoutParams.height = DEFAULT_PLAYER_HEIGHT;
                 }
                 break;
+        }
+    }
+
+    @Override
+    public void setPortrait(boolean portrait) {
+        super.setPortrait(portrait);
+        int navigationBarHeight = getNavigationBarHeight();
+        if (isFullScreen() || navigationBarHeight <= 0) {
+            return;
+        }
+        ViewGroup bottom = bottomBinding.getRoot();
+        int paddingBottom = isFullScreen() ? FULLSCREEN_PADDING_BOTTOM : DEFAULT_PADDING_BOTTOM;
+        if (portrait) {
+            bottom.setPadding(bottom.getPaddingLeft(), bottom.getPaddingTop(),
+                    bottom.getPaddingRight(), navigationBarHeight + paddingBottom);
+        } else {
+            bottom.setPadding(bottom.getPaddingLeft(), bottom.getPaddingTop(),
+                    bottom.getPaddingRight(), paddingBottom);
         }
     }
 }

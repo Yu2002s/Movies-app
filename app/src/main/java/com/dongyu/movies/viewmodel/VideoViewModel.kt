@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dongyu.movies.model.movie.MovieDetail
+import com.dongyu.movies.model.movie.MovieItem
 import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.model.movie.MovieVideo
 import com.dongyu.movies.model.movie.PlayHistory
@@ -127,7 +128,8 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
                     videoHeader = detail.video?.headers
                     // 从历史记录中
                     updateDetail(detail)
-                    getDanmakuUrls(detail)
+                    val movieItem = detail.movieItem
+                    getDanmakuUrls(movieItem.tvName, movieItem.years)
                 }
                 _detailStateFlow.value = result
             }
@@ -137,11 +139,11 @@ class VideoViewModel(private val parseParam: ParseParam?) : ViewModel() {
     /**
      * 获取弹幕链接地址集合
      */
-    private suspend fun getDanmakuUrls(detail: MovieDetail) {
+    private suspend fun getDanmakuUrls(name: String, year: String) {
         MovieRepository.getMovieDanMuKu(
             IQiYiSearchParams(
-                detail.movieItem.tvName,
-                detail.movieItem.years.toIntOrNull() ?: 0,
+                name,
+                year.toIntOrNull() ?: 0,
                 playHistoryStateFlow.value?.selection ?: 1
             )
         ).collect { urls ->

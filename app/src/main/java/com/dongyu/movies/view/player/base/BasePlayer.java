@@ -17,7 +17,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import android.provider.Settings;
-import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -49,8 +48,6 @@ import com.dongyu.movies.databinding.LayoutDyPlayerBinding;
 import com.dongyu.movies.utils.DisplayUtilsKt;
 import com.dongyu.movies.utils.TimeUtilsKt;
 import com.dongyu.movies.utils.UtilsKt;
-
-import org.jsoup.nodes.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -145,6 +142,11 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
 
     private int statusBarHeight = DEFAULT_STATUS_BAR_HEIGHT;
 
+    /**
+     * 底部导航栏间距，当设置 竖屏的情况下需要此值适配底部控制栏
+     */
+    private int navigationBarHeight = 0;
+
     private int currentVolume = 0;
 
     private float currentBrightness = 0;
@@ -196,7 +198,8 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         ViewCompat.setOnApplyWindowInsetsListener(this, (v, insets) -> {
             int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             this.statusBarHeight = statusBarHeight;
-            onInsetChanged(statusBarHeight);
+            this.navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            onInsetChanged(statusBarHeight, navigationBarHeight);
             ViewCompat.setOnApplyWindowInsetsListener(v, null);
             return insets;
         });
@@ -289,6 +292,10 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         return ijkMediaPlayer;
     }
 
+    public int getNavigationBarHeight() {
+        return navigationBarHeight;
+    }
+
     protected Drawable getMaskViewBackground() {
         return null;
     }
@@ -373,7 +380,7 @@ public class BasePlayer extends FrameLayout implements PlayerTouchListener, Play
         playerTouchHelp.setPlayerSize(w, h);
     }
 
-    protected void onInsetChanged(int statusBarHeight) {
+    protected void onInsetChanged(int statusBarHeight, int navigationBarHeight) {
     }
 
     @Override

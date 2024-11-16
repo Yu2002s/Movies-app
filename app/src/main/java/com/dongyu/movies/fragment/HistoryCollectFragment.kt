@@ -6,7 +6,10 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isInvisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -163,6 +166,12 @@ class HistoryCollectFragment : Fragment(), MenuItem.OnMenuItemClickListener {
                     }
                 }
             }
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.rv) { v, insets ->
+            binding.rv.clipToPadding = false
+            v.updatePadding(bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom)
+            insets
         }
     }
 

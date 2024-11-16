@@ -258,6 +258,14 @@ public class VideoSourceView extends LinearLayoutCompat {
      * @return 是否最后一集
      */
     public boolean hasNextSelection() {
+        return !isLastSourceItem;
+    }
+
+    /**
+     * 是否是最后一集
+     * @return true表示最后一集
+     */
+    public boolean isLastSourceItem() {
         return isLastSourceItem;
     }
 
@@ -384,7 +392,7 @@ public class VideoSourceView extends LinearLayoutCompat {
         tab.setupWithViewPager(vp);
         setVisibility(INVISIBLE);
 
-        ViewCompat.setOnApplyWindowInsetsListener(this, new androidx.core.view.OnApplyWindowInsetsListener() {
+        /*ViewCompat.setOnApplyWindowInsetsListener(this, new androidx.core.view.OnApplyWindowInsetsListener() {
             @NonNull
             @Override
             public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
@@ -392,7 +400,7 @@ public class VideoSourceView extends LinearLayoutCompat {
                 insertBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
                 return insets;
             }
-        });
+        });*/
     }
 
     private class SourcePageAdapter extends PagerAdapter {

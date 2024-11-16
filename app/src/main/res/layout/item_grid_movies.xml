@@ -1,57 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    app:cardElevation="2dp"
-    android:layout_margin="5dp"
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_margin="5dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <com.dongyu.movies.view.RoundImageView
+        android:contentDescription="@string/movie_cover"
+        android:foreground="?attr/selectableItemBackground"
+        android:id="@+id/movie_img"
+        android:layout_height="190dp"
+        android:layout_width="0dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars" />
 
-        <com.dongyu.movies.view.RoundImageView
-            android:foreground="?attr/selectableItemBackground"
-            android:scaleType="centerCrop"
-            android:id="@+id/movie_img"
-            android:layout_width="0dp"
-            android:layout_height="190dp"
-            android:contentDescription="@string/movie_cover"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:src="@tools:sample/avatars" />
+    <TextView
+        android:background="@drawable/bg_small_card"
+        android:ellipsize="end"
+        android:id="@+id/movie_status"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_width="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@id/movie_img"
+        app:layout_constraintEnd_toEndOf="@id/movie_img"
+        tools:ignore="SmallSp"
+        tools:text="@string/app_name" />
 
-        <TextView
-            android:id="@+id/movie_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_small_card"
-            android:ellipsize="end"
-            android:textColor="@color/white"
-            android:textSize="10sp"
-            app:layout_constraintBottom_toBottomOf="@id/movie_img"
-            app:layout_constraintEnd_toEndOf="@id/movie_img"
-            tools:ignore="SmallSp"
-            tools:text="@string/app_name" />
+    <TextView
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:id="@+id/movie_name"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:maxLines="1"
+        android:padding="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/movie_img"
+        tools:text="@string/app_name" />
 
-        <TextView
-            android:padding="4dp"
-            android:id="@+id/movie_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center_horizontal"
-            android:maxLines="1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/movie_img"
-            tools:text="@string/app_name" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

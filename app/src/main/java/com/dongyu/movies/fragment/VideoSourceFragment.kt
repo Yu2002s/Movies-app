@@ -5,6 +5,10 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -44,6 +48,7 @@ class VideoSourceFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return RecyclerView(requireContext()).also {
+            it.clipToPadding = false
             it.layoutManager = GridLayoutManager(requireContext(), 3)
             it.layoutParams = ViewGroup.LayoutParams(-1, -1)
         }
@@ -66,6 +71,13 @@ class VideoSourceFragment : Fragment() {
                 getDownloadUrl(getModel())
             }
         }.models = requireArguments().getParcelableArrayList<VideoSource.Item>(PARAM_ITEMS)
+
+        ViewCompat.setOnApplyWindowInsetsListener(rv
+        ) { v, insets ->
+            val bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            v.updatePadding(v.paddingLeft, v.paddingTop, v.paddingRight, bottom)
+            insets
+        }
     }
 
     private fun getDownloadUrl(item: VideoSource.Item) {

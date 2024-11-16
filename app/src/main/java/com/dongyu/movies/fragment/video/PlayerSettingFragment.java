@@ -4,11 +4,15 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.DropDownPreference;
@@ -16,6 +20,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SeekBarPreference;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.dongyu.movies.R;
 import com.dongyu.movies.activity.LiveVideoActivity;
@@ -32,12 +37,37 @@ public class PlayerSettingFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(@Nullable Bundle bundle, @Nullable String s) {
-          setPreferencesFromResource(R.xml.preference_player_setting, s);
+        setPreferencesFromResource(R.xml.preference_player_setting, s);
+    }
+
+    private RecyclerView recyclerView;
+
+    @NonNull
+    @Override
+    public RecyclerView onCreateRecyclerView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable Bundle savedInstanceState) {
+        RecyclerView recyclerView = super.onCreateRecyclerView(inflater, parent, savedInstanceState);
+        this.recyclerView = recyclerView;
+        return recyclerView;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        ViewCompat.setOnApplyWindowInsetsListener(view, new OnApplyWindowInsetsListener() {
+            @NonNull
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                ViewCompat.setOnApplyWindowInsetsListener(v, null);
+                if (recyclerView != null) {
+                    int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                    recyclerView.setClipToPadding(false);
+                    recyclerView.setPadding(recyclerView.getPaddingLeft(), recyclerView.getPaddingTop(),
+                            recyclerView.getPaddingRight(), bottom);
+                }
+                return insets;
+            }
+        });
 
         if (requireActivity() instanceof MainActivity) {
             TypedArray typedArray = requireContext().obtainStyledAttributes(new int[]{com.google.android.material.R.attr.colorSurface});
@@ -51,7 +81,7 @@ public class PlayerSettingFragment extends PreferenceFragmentCompat {
         assert startTime != null;
         startTime.setSummary("时间: " + TimeUtilsKt.getTime(startTime.getValue()));
         startTime.setOnPreferenceChangeListener((preference, o) -> {
-            long time = (int)o;
+            long time = (int) o;
             preference.setSummary("时间: " + (TimeUtilsKt.getTime(time)));
             return true;
         });
@@ -60,7 +90,7 @@ public class PlayerSettingFragment extends PreferenceFragmentCompat {
         assert endTime != null;
         endTime.setSummary("时间: " + TimeUtilsKt.getTime(endTime.getValue()));
         endTime.setOnPreferenceChangeListener((preference, o) -> {
-            long time = (int)o;
+            long time = (int) o;
             preference.setSummary("时间: " + (TimeUtilsKt.getTime(time)));
             return true;
         });

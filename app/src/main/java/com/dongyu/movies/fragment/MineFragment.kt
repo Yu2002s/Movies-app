@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,7 @@ import com.dongyu.movies.R
 import com.dongyu.movies.activity.DownloadActivity
 import com.dongyu.movies.activity.HistoryCollectActivity
 import com.dongyu.movies.activity.SettingActivity
+import com.dongyu.movies.config.AppConfig
 import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.databinding.FragmentMineBinding
 import com.dongyu.movies.databinding.ItemGridActionBinding
@@ -85,6 +87,8 @@ class MineFragment : Fragment() {
                     0 -> com.dongyu.movies.utils.startActivity<DownloadActivity>()
                     1 -> com.dongyu.movies.utils.startActivity<HistoryCollectActivity>()
                     2 -> com.dongyu.movies.utils.startActivity<SettingActivity>()
+                    3 -> startActivity(Intent(Intent.ACTION_VIEW, AppConfig.MP_URL.toUri()))
+                    4 -> startActivity(Intent(Intent.ACTION_VIEW, AppConfig.APP_HELP_URL.toUri()))
                 }
             }
         }.models = getActionList()
@@ -101,6 +105,8 @@ class MineFragment : Fragment() {
         ActionItem(R.drawable.baseline_arrow_circle_down_24, "下载管理"),
         ActionItem(R.drawable.baseline_history_24, "历史收藏"),
         ActionItem(R.drawable.baseline_settings_24, getString(R.string.nav_setting)),
+        ActionItem(R.drawable.baseline_group_24, "反馈/交流"),
+        ActionItem(R.drawable.baseline_help_outline_24, "使用帮助")
     )
 
     override fun onDestroyView() {

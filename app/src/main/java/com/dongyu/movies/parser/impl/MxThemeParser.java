@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,15 +47,9 @@ public class MxThemeParser extends SimpleParser {
 
     private static final String TAG = MxThemeParser.class.getSimpleName();
 
-    public static Gson gson = new Gson();
-
     @Override
     public int getParseId() {
         return ParserList.MX_THEME.getParseId();
-    }
-
-    public static MxThemeParser create() {
-        return new MxThemeParser();
     }
 
     private List<MovieItem> getSearchListSimple(Elements els) {
@@ -300,10 +295,17 @@ public class MxThemeParser extends SimpleParser {
 
         videoSources = parseSource(modules.get(1), playParam, currentSourceItem::set);
 
+        List<BaseMovieItem> recommendMovies = null;
+        if (modules.size() > 2) {
+            Element recommendModule = modules.get(2);
+            Elements moduleItems = recommendModule.select(".module-items a.module-item");
+            recommendMovies = moduleItems.stream().map(this::parseModuleItem).collect(Collectors.toList());
+        }
+
         if (currentSourceItem.get() == null) {
             return ParserResult.error("解析错误");
         }
-        return ParserResult.success(new MovieDetail(moviesItem, currentSourceItem.get(), videoSources));
+        return ParserResult.success(new MovieDetail(moviesItem, currentSourceItem.get(), videoSources, recommendMovies));
     }
 
     @Override
@@ -351,18 +353,6 @@ public class MxThemeParser extends SimpleParser {
         }
 
         return ParserResult.error("解析视频地址失败");
-    }
-
-    public static class Video {
-        String url;
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
     }
 
     public String parseId(String href) {

@@ -29,9 +29,9 @@
 
         <Preference
             app:icon="@drawable/baseline_group_24"
-            app:key="qq_group"
-            app:summary="加入群聊反馈bug或者建议"
-            app:title="QQ交流反馈群" />
+            app:key="mp"
+            app:summary="关注公众号获取最新更新和反馈建议"
+            app:title="公众号"/>
 
         <Preference
             app:icon="@drawable/baseline_group_24"

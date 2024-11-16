@@ -14,6 +14,10 @@ data class MovieDetail(
      */
     val videoSources: List<VideoSource>,
     /**
+     * 推荐影视列表
+     */
+    val recommendMovies: List<BaseMovieItem>? = null,
+    /**
      * 影视播放信息（一般为空，当详情页和播放页是同一个页面则需要进行设置）
      */
     val video: MovieVideo? = null
@@ -23,7 +27,14 @@ data class MovieDetail(
         movieItem: MovieItem,
         currentSourceItem: VideoSource.Item,
         videoSources: List<VideoSource>
-    ) : this(movieItem, currentSourceItem, videoSources, null)
+    ) : this(movieItem, currentSourceItem, videoSources, null, null)
+
+    constructor(
+        movieItem: MovieItem,
+        currentSourceItem: VideoSource.Item,
+        videoSources: List<VideoSource>,
+        recommendMovies: List<BaseMovieItem>?
+    ) : this(movieItem, currentSourceItem, videoSources, recommendMovies, null)
 
     override fun equals(other: Any?): Boolean {
         // 不进行比较，永远不可能相等，解决刷新问题。

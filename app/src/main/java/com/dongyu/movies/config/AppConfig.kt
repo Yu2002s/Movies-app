@@ -7,7 +7,9 @@ object AppConfig {
     /**
      * App 主页地址
      */
-    const val APP_PAGE_HOME = "http://jdynb.xyz/movie"
+    const val APP_PAGE_HOME = "http://movies.jdynb.xyz"
+
+    const val APP_HELP_URL = "$APP_PAGE_HOME/help.html"
 
     /**
      * Telegram交流群地址
@@ -21,7 +23,8 @@ object AppConfig {
 
     /**
      * QQ群聊地址
+     * http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ftRJyAMQkZG_cVmVsMjFiMIhclwHIBsz&authKey=t26K2XvCPFEmaWGtzekfP8f5n86ulJtW%2F23xOqyKw%2Fk8RNVYDKFAnbSZyjvYkWyj&noverify=0&group_code=697470084
      */
-    const val QQ_GROUP_URL = "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ftRJyAMQkZG_cVmVsMjFiMIhclwHIBsz&authKey=t26K2XvCPFEmaWGtzekfP8f5n86ulJtW%2F23xOqyKw%2Fk8RNVYDKFAnbSZyjvYkWyj&noverify=0&group_code=697470084"
+    const val MP_URL = "https://mp.weixin.qq.com/s/3Y6dND-wP7jsbwrz6U7krA"
 
 }

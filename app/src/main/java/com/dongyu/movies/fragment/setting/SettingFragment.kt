@@ -139,7 +139,7 @@ class SettingFragment : PreferenceFragmentCompat() {
      * 更新用户基本信息
      */
     private fun updateUserInfo(user: User?) {
-        logoutPreference?.isVisible = user != null
+        logoutPreference?.isEnabled = user != null
         userPreference?.apply {
             if (user != null) {
                 title = user.nickname

@@ -12,6 +12,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.dongyu.movies.R
@@ -159,11 +160,8 @@ class DownloadActivity : BaseActivity(), ServiceConnection, DownloadListener {
     }
 
     override fun onInsetChanged(statusBarHeight: Int, navigationBarHeight: Int): Boolean {
-        return true
-    }
-
-    override fun getRecyclerView(): RecyclerView {
-        return binding.rv
+        binding.savePath.updatePadding(bottom = navigationBarHeight)
+        return false
     }
 
     override fun onDestroy() {

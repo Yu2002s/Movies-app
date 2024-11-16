@@ -12,7 +12,7 @@ import androidx.preference.PreferenceFragmentCompat
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.MainActivity
 import com.dongyu.movies.config.AppConfig
-import com.dongyu.movies.config.AppConfig.QQ_GROUP_URL
+import com.dongyu.movies.config.AppConfig.MP_URL
 import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.utils.ALiPayUtils
@@ -73,8 +73,8 @@ class AboutFragment : PreferenceFragmentCompat() {
             true
         }
 
-        findPreference<Preference>("qq_group")?.setOnPreferenceClickListener {
-            goQQGroup()
+        findPreference<Preference>("mp")?.setOnPreferenceClickListener {
+            goMP()
             true
         }
 
@@ -112,10 +112,10 @@ class AboutFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun goQQGroup() {
+    private fun goMP() {
         val intent = Intent(
             Intent.ACTION_VIEW,
-            QQ_GROUP_URL.toUri()
+            MP_URL.toUri()
         )
         startActivity(intent)
     }

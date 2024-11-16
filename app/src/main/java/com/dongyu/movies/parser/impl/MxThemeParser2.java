@@ -1,8 +1,5 @@
 package com.dongyu.movies.parser.impl;
 
-import android.util.Log;
-
-import com.dongyu.movies.model.home.BannerItem;
 import com.dongyu.movies.model.home.CategoryData;
 import com.dongyu.movies.model.home.FilterData;
 import com.dongyu.movies.model.home.MainData;
@@ -15,10 +12,7 @@ import com.dongyu.movies.model.movie.VideoSource;
 import com.dongyu.movies.model.page.PageResult;
 import com.dongyu.movies.model.parser.ParserResult;
 import com.dongyu.movies.model.parser.PlayParam;
-import com.dongyu.movies.parser.BaseParser;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -27,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

@@ -148,8 +148,8 @@ class MainActivity : BaseActivity() {
                 setPositiveButton("下载更新") { _, _ ->
                     getUpdateUrl(update)
                 }
-                setNegativeButton("Telegram") { _, _ ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
+                setNegativeButton("公众号") { _, _ ->
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.MP_URL))
                     startActivity(intent)
                     exitProcess(0)
                 }
@@ -171,8 +171,8 @@ class MainActivity : BaseActivity() {
                     startActivity(intent)
                     exitProcess(0)
                 }
-                setNeutralButton("Telegram") { _, _ ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.GROUP_URL))
+                setNeutralButton("公众号") { _, _ ->
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.MP_URL))
                     startActivity(intent)
                     exitProcess(0)
                 }

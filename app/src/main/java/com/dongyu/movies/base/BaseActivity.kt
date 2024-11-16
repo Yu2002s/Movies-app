@@ -1,7 +1,10 @@
 package com.dongyu.movies.base
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.ViewGroup
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
@@ -13,6 +16,10 @@ import com.dongyu.movies.event.ThemeObserver
 import com.dongyu.movies.utils.ThemeUtils
 
 open class BaseActivity: AppCompatActivity(), ThemeObserver {
+
+    companion object {
+        private var isSmallNavigationBar = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,11 +38,16 @@ open class BaseActivity: AppCompatActivity(), ThemeObserver {
     }
 
     private fun initWindow() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (isSmallNavigationBar) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        } else {
+            enableEdgeToEdge()
+        }
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { v, insets ->
             ViewCompat.setOnApplyWindowInsetsListener(v, null)
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
             val navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            isSmallNavigationBar = navigationBarHeight <= 120
             if (onInsetChanged(statusBarHeight, navigationBarHeight)) {
                 val rootView: ViewGroup = v.findViewById<ViewGroup>(android.R.id.content)
                     .getChildAt(0) as ViewGroup

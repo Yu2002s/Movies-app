@@ -8,11 +8,13 @@ import androidx.activity.viewModels
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.dongyu.movies.MoviesApplication
 import com.dongyu.movies.R
 import com.dongyu.movies.base.BaseActivity
 import com.dongyu.movies.config.SPConfig
 import com.dongyu.movies.databinding.ActivityVideoBinding
+import com.dongyu.movies.databinding.ItemGridMoviesBinding
 import com.dongyu.movies.databinding.ItemListSourceBinding
 import com.dongyu.movies.databinding.LayoutPlayerSettingBinding
 import com.dongyu.movies.dialog.BaseAppCompatDialog
@@ -20,14 +22,17 @@ import com.dongyu.movies.dialog.MovieDetailDialog
 import com.dongyu.movies.dialog.SearchMovieDialog
 import com.dongyu.movies.event.OnSourceItemChangeListener
 import com.dongyu.movies.event.OnVideoErrorBtnClickListener
+import com.dongyu.movies.model.movie.BaseMovieItem
 import com.dongyu.movies.model.movie.MovieDetail
 import com.dongyu.movies.model.movie.MovieItem
 import com.dongyu.movies.model.movie.MovieVideo
 import com.dongyu.movies.model.movie.PlayHistory
 import com.dongyu.movies.model.movie.VideoSource
 import com.dongyu.movies.model.movie.VideoType
+import com.dongyu.movies.model.movie.loadListCardMovies
 import com.dongyu.movies.model.parser.ParseParam
 import com.dongyu.movies.model.parser.PlayParam
+import com.dongyu.movies.utils.SpUtils
 import com.dongyu.movies.utils.SpUtils.get
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.view.player.DongYuPlayer
@@ -35,8 +40,10 @@ import com.dongyu.movies.view.player.base.BasePlayer
 import com.dongyu.movies.view.player.base.PlayerStateListener
 import com.dongyu.movies.viewmodel.VideoViewModel
 import com.dongyu.movies.viewmodel.VideoViewModelFactory
+import com.drake.brv.utils.models
 import com.drake.brv.utils.setup
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.wanban.screencast.Utils
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -175,15 +182,15 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
         val loading = binding.loading
         val error = binding.error.root
         if (result == null) {
-            loading.isInvisible = false
-            error.isInvisible = true
+            loading.isVisible = true
+            error.isVisible = false
             return
         }
-        loading.isInvisible = true
+        loading.isVisible = false
         binding.sourceView.isInvisible = false
         result.onSuccess { data ->
             Log.d(TAG, "detail: $data")
-            error.isInvisible = true
+            error.isVisible = false
             movieItem = data.movieItem
             tvName = movieItem.tvName
             videoSources = data.videoSources
@@ -195,12 +202,19 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 // 判断video是否为空，不为空则表示详情附带视频信息
                 sourceView.submitList(data.videoSources, false, this@VideoActivity)
                     .setSelection(data.currentSourceItem)
+                recommendRv.models = data.recommendMovies
+                /*if (data.recommendMovies.isNullOrEmpty()) {
+                    binding.state.showEmpty()
+                } else {
+                    binding.state.showContent()
+                }*/
             }
         }.onFailure {
             binding.dyPlayer.hideLoading()
             Log.e(TAG, it.toString())
-            error.isInvisible = false
+            error.isVisible = true
             showSearchFragmentDialog()
+            // binding.state.showError()
         }
     }
 
@@ -233,12 +247,18 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 // 当请求被取消时
                 return@onFailure
             }
-            dyPlayer.apply {
-                hideLoading()
-                playError()
-                showMaskView()
+            // 自动切换线路
+            val autoSwitchRoute = SpUtils.DEFAULT_KEY.get(SPConfig.PLAYER_AUTO_SWITCH_ROUTE, true)!!
+            if (!(autoSwitchRoute && binding.sourceView.switchSource())) {
+                dyPlayer.apply {
+                    hideLoading()
+                    playError()
+                    showMaskView()
+                }
+                (e.message + "\n请尝试更换线路、换源").showToast()
+            } else {
+                "播放失败，切换线路中...".showToast()
             }
-            (e.message + "\n请尝试更换线路、换源").showToast()
             Log.e(TAG, e.toString())
         }
     }
@@ -314,6 +334,11 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             intent.getStringExtra(PARAM_URL)?.let {
                 binding.dyPlayer.play(it)
             }
+            return
+        }
+        binding.recommendRv.loadListCardMovies {
+            val movieId = parseParam?.movieId ?: return@loadListCardMovies
+            play(ParseParam(movieId = movieId, detailId = it.id, tvName = it.tvName))
         }
     }
 
@@ -381,7 +406,11 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                     "线路列表为空或未加载，请等待加载后尝试".showToast()
                     return@setOnClickListener
                 }
-                VideoSourceActivity.start(videoSources, binding.sourceView.currentSourceItemPosition, movieItem.tvName)
+                VideoSourceActivity.start(
+                    videoSources,
+                    binding.sourceView.currentSourceItemPosition,
+                    movieItem.tvName
+                )
             }
 
             // 详情点击事件，查看视频详细信息
@@ -412,9 +441,13 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 dyPlayer.hideDanmaku()
             } else {
                 val sourcePosition = binding.sourceView.currentSourceItemPosition
-                if (sourcePosition != -1) {
+                if (sourcePosition == -1) {
+                    return@setOnClickListener
+                }
+                if (!dyPlayer.showDanmaku()) {
+                    "弹幕未加载".showToast()
+                } else {
                     dyPlayer.startDanmaku(sourcePosition)
-                    dyPlayer.showDanmaku()
                 }
             }
         }
@@ -494,7 +527,7 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
                 }
             }
             viewModel.updateHistory()
-            if (!binding.sourceView.hasNextSelection()) {
+            if (binding.sourceView.isLastSourceItem) {
                 binding.dyPlayer.showToast("已全部播放完成，感谢观看！")
             }
 
@@ -561,6 +594,14 @@ class VideoActivity : BaseActivity(), PlayerStateListener, OnSourceItemChangeLis
             lp.preferredDisplayModeId = modes.first().modeId
             it.attributes = lp
         }
+    }
+
+    override fun onInsetChanged(statusBarHeight: Int, navigationBarHeight: Int): Boolean {
+        return true
+    }
+
+    override fun getRecyclerView(): RecyclerView {
+        return binding.recommendRv
     }
 
     override fun onResume() {

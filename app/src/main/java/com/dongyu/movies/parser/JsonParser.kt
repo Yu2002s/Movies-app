@@ -17,6 +17,13 @@ open class JsonParser : SimpleParser() {
         val GSON = Gson()
     }
 
+    /**
+     * 解析json为实体类
+     */
+    inline fun<reified T> String.fromJson(): T {
+        return GSON.fromJson(this, T::class.java)
+    }
+
     override fun getDetail(): ParserResult<MovieDetail> {
         val parseUrl = getParseUrl(url, TYPE.DETAIL)
         setParseUrl(parseUrl).setType(TYPE.DETAIL)
@@ -53,7 +60,7 @@ open class JsonParser : SimpleParser() {
     @Throws(Exception::class)
     private inline fun <reified T> getBaseResponse(body: String): T {
         val response: BaseResponse<T> = GSON.fromJson(body, object : TypeToken<BaseResponse<T>>(){}.type)
-        if (response.code != 200) throw Exception("response.code != 200")
+        if (response.code != 200) throw Exception("解析失败，请尝试更换线路、换源")
         return response.data
     }
 }

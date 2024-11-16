@@ -41,7 +41,7 @@
     <string name="play_complete">已看完</string>
     <string name="banner_img">轮播图片</string>
     <string name="play_route">播放线路</string>
-    <string name="play_tips">首次加载可能较慢，如播放频繁卡顿或播放失败请尝试切换线路或换源，不要相信视频内的广告</string>
+    <string name="play_tips">首次加载可能较慢，如播放频繁卡顿或播放失败请尝试切换线路或换源，也可尝试重新进入此页面。不要相信视频内的广告！</string>
 
     <!-- loading -->
     <string name="error_text">%s，点击刷新</string>

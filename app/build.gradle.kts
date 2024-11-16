@@ -38,8 +38,8 @@ android {
         applicationId = "com.dongyu.movies"
         minSdk = 24
         targetSdk = 34
-        versionCode = 36
-        versionName = "2.1.1"
+        versionCode = 39
+        versionName = "2.1.3-fix"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
@@ -48,7 +48,7 @@ android {
 
         ndk {
             abiFilters.add("arm64-v8a")
-            abiFilters.add("x86_64")
+            // abiFilters.add("x86_64")
         }
     }
 
@@ -100,7 +100,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
