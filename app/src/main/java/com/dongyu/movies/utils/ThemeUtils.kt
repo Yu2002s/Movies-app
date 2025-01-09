@@ -27,7 +27,7 @@ object ThemeUtils {
     private val themeObservers = mutableListOf<ThemeObserver>()
 
     var currentTheme = THEME_AUTO
-        get() = SPConfig.APP_THEME.getRequired<String>(THEME_DARK)
+        get() = SPConfig.APP_THEME.getRequired<String>(THEME_LIGHT)
         set(value) {
             if (field != value) {
                 SPConfig.APP_THEME.put(value)

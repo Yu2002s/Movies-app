@@ -38,8 +38,8 @@ android {
         applicationId = "com.dongyu.movies"
         minSdk = 24
         targetSdk = 34
-        versionCode = 39
-        versionName = "2.1.3-fix"
+        versionCode = 40
+        versionName = "2.1.4-release"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
@@ -106,7 +106,7 @@ dependencies {
 
     implementation("org.litepal.guolindev:core:3.2.3")
     // https://mvnrepository.com/artifact/com.alibaba/fastjson
-    implementation("com.alibaba:fastjson:1.2.83")
+    // implementation("com.alibaba:fastjson:1.2.83")
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     implementation("org.jsoup:jsoup:1.17.2")
     // https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit

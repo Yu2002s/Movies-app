@@ -9,23 +9,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
-import com.alimm.tanx.ui.image.glide.request.target.Target
 import com.bumptech.glide.Glide
-import com.cat.sdk.ad.ADBannerAd
-import com.cat.sdk.ad.ADBannerAd.ADBannerAdListener
-import com.cat.sdk.ad.ADMParams
+import com.bumptech.glide.request.target.Target
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.VideoActivity
 import com.dongyu.movies.base.BaseFragment
-import com.dongyu.movies.config.ADConfig
-import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.databinding.FragmentSearchBinding
 import com.dongyu.movies.databinding.ItemListMovieBinding
 import com.dongyu.movies.databinding.ItemSelectMovieBinding
 import com.dongyu.movies.model.movie.MovieItem
+import com.dongyu.movies.model.movie.MovieResponse
 import com.dongyu.movies.model.parser.ParseParam
-import com.dongyu.movies.parser.ParserList
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.SearchViewModel
 import com.drake.brv.utils.bindingAdapter
@@ -47,8 +41,6 @@ class SearchFragment : BaseFragment() {
     private val searchViewModel by viewModels<SearchViewModel>(ownerProducer = {
         requireActivity()
     })
-
-    private var parseId: Int = -1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -196,7 +188,7 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun loadAdView() {
-        val adView = binding.adView
+        /*val adView = binding.adView
         adView.post {
             val admParams = ADMParams.Builder()
                 .slotId(ADConfig.BANNER_ID)
@@ -226,7 +218,7 @@ class SearchFragment : BaseFragment() {
                 }
             })
             adBannerAd.loadAD()
-        }
+        }*/
     }
 
     /**

@@ -73,7 +73,9 @@ public class MxThemeParser extends SimpleParser {
             movieItem.setTvName(title);
             movieItem.setYears(arr[0]);
             movieItem.setArea(arr[1]);
-            movieItem.setType(arr[2]);
+            if (arr.length > 2) {
+                movieItem.setType(arr[2]);
+            }
 
             movieItem.setStar(infoItems.get(1).text());
 

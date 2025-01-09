@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,20 +14,18 @@ import androidx.preference.DropDownPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.bumptech.glide.Glide
-import com.cat.sdk.utils.QSpUtils
 import com.dongyu.movies.R
 import com.dongyu.movies.activity.LoginActivity
 import com.dongyu.movies.config.SPConfig
-import com.dongyu.movies.network.Repository
-import com.dongyu.movies.model.user.User
 import com.dongyu.movies.dialog.MovieSourceDialog
+import com.dongyu.movies.model.user.User
+import com.dongyu.movies.network.Repository
 import com.dongyu.movies.utils.ThemeUtils
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.viewmodel.UserViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -98,8 +95,6 @@ class SettingFragment : PreferenceFragmentCompat() {
                     lifecycleScope.launch(Dispatchers.IO) {
                         requireContext().externalCacheDir?.deleteRecursively()
                         Glide.get(requireContext()).clearDiskCache()
-                        val ymd = getDateNoLineToString(System.currentTimeMillis() / 1000)
-                        QSpUtils.removeToSP(requireContext(), "ruler$ymd");
                         requireActivity().runOnUiThread {
                             "缓存已清理".showToast()
                         }

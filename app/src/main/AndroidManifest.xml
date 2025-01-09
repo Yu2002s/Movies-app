@@ -36,12 +36,12 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Movies.Dark"
+        android:theme="@style/Theme.Movies"
         tools:replace="android:allowBackup"
         tools:targetApi="31">
 
         <activity
-            android:name=".activity.SplashActivity"
+            android:name=".activity.MainActivity"
             android:configChanges="orientation|keyboardHidden"
             android:exported="true"
             android:windowSoftInputMode="adjustPan|stateHidden">
@@ -51,9 +51,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
+        <!--<activity
             android:name=".activity.MainActivity"
-            android:windowSoftInputMode="adjustNothing" />
+            android:windowSoftInputMode="adjustNothing" />-->
         <activity
             android:name=".activity.VideoActivity"
             android:configChanges="screenSize|orientation|smallestScreenSize|screenLayout|layoutDirection" />
@@ -82,11 +82,11 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/q_file_paths"
+                android:resource="@xml/file_paths"
                 tools:replace="android:resource" />
         </provider>
         <!--百度-->
-        <provider
+        <!--<provider
             android:name="com.baidu.mobads.sdk.api.BdFileProvider"
             android:authorities="${applicationId}.bd.provider"
             android:exported="false"
@@ -94,9 +94,9 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/bd_file_paths" />
-        </provider>
+        </provider>-->
         <!--gdt-->
-        <provider
+        <!--<provider
             android:name="com.qq.e.comm.GDTFileProvider"
             android:authorities="${applicationId}.gdt.fileprovider"
             android:exported="false"
@@ -104,9 +104,9 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/gdt_file_path" />
-        </provider>
+        </provider>-->
         <!--csj-->
-        <provider
+        <!--<provider
             android:name="com.bytedance.sdk.openadsdk.TTFileProvider"
             android:authorities="${applicationId}.TTFileProvider"
             android:exported="false"
@@ -119,7 +119,7 @@
         <provider
             android:name="com.bytedance.sdk.openadsdk.multipro.TTMultiProvider"
             android:authorities="${applicationId}.TTMultiProvider"
-            android:exported="false" />
+            android:exported="false" />-->
 
     </application>
 

@@ -18,7 +18,7 @@ import com.dongyu.movies.utils.ThemeUtils
 open class BaseActivity: AppCompatActivity(), ThemeObserver {
 
     companion object {
-        private var isSmallNavigationBar = false
+        private var isSmallNavigationBar = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -3,15 +3,11 @@ package com.dongyu.movies
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import com.cat.sdk.ADMConfig
-import com.cat.sdk.SadManager
-import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.utils.Checker
 import com.dongyu.movies.utils.ContextUtils
 import com.dongyu.movies.utils.EncryptUtils
 import com.dongyu.movies.utils.SSLIgnore
 import com.drake.statelayout.StateConfig
-import com.kwad.sdk.oaid.OADIDSDKHelper
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -61,12 +57,12 @@ class MoviesApplication : Application() {
         // 忽略ssl错误
         SSLIgnore.init()
         // 初始化广告
-        val admConfig = ADMConfig.Builder()
+        /*val admConfig = ADMConfig.Builder()
             .appKey(ADConfig.APP_ID)
             // .oaid(ADConfig.OA_ID)
             .debug(false)
             .build()
-        SadManager.getInstance().initAd(this, admConfig)
+        SadManager.getInstance().initAd(this, admConfig)*/
 
         // 一些配置信息
         StateConfig.apply {

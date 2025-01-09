@@ -2,18 +2,6 @@ package com.dongyu.movies;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.alimm.tanx.core.request.C;
-import com.dongyu.movies.model.home.CategoryData;
-import com.dongyu.movies.model.home.ClassifyQueryParam;
-import com.dongyu.movies.model.home.MainData;
-import com.dongyu.movies.model.movie.BaseMovieItem;
-import com.dongyu.movies.model.movie.MovieDetail;
-import com.dongyu.movies.model.page.PageResult;
-import com.dongyu.movies.model.parser.ParserResult;
-import com.dongyu.movies.parser.BaseParser;
-import com.dongyu.movies.parser.impl.DDParser;
-import com.dongyu.movies.parser.impl.MxThemeParser;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

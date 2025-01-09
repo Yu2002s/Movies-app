@@ -1,22 +1,12 @@
 package com.dongyu.movies.activity
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
-import android.view.View
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
-import com.cat.sdk.ad.ADMParams
-import com.cat.sdk.ad.ADSplashAd
 import com.dongyu.movies.base.BaseActivity
-import com.dongyu.movies.config.ADConfig
 import com.dongyu.movies.databinding.ActivitySplashBinding
-import org.jetbrains.annotations.ApiStatus.OverrideOnly
 
 /**
  * 应用启动页面
@@ -36,7 +26,7 @@ class SplashActivity: BaseActivity() {
 
     private var canJump: Boolean = false
 
-    private lateinit var adSplashAd: ADSplashAd
+    // private lateinit var adSplashAd: ADSplashAd
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,11 +61,11 @@ class SplashActivity: BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        adSplashAd.destory()
+        // adSplashAd.destory()
     }
 
     private fun initAdFn() {
-        val admParams = ADMParams.Builder()
+        /*val admParams = ADMParams.Builder()
             .slotId(ADConfig.SPLASH_ID)
             .layout(binding.logoAdView)
             .build()
@@ -104,7 +94,7 @@ class SplashActivity: BaseActivity() {
                 Log.i(TAG, "onADClick")
             }
         })
-        adSplashAd.loadAD()
+        adSplashAd.loadAD()*/
     }
 
     /**

@@ -1,17 +1,14 @@
 package com.dongyu.movies.dialog
 
-import android.app.Activity
 import android.content.Context
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatDialog
-import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.dongyu.movies.R
 import com.dongyu.movies.utils.getWindowHeight
 import com.dongyu.movies.utils.getWindowWidth
-import com.kwad.sdk.contentalliance.coupon.model.ActivityInfo
 
 class BaseAppCompatDialog(context: Context): AppCompatDialog(context) {
 

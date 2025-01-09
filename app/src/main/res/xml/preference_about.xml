@@ -7,6 +7,7 @@
     <PreferenceCategory app:title="关于">
 
         <Preference
+            app:key="dev_author"
             app:icon="@drawable/baseline_logo_dev_24"
             app:summary="冬日暖雨"
             app:title="作者" />

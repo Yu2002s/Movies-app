@@ -20,6 +20,7 @@ import com.dongyu.movies.utils.SpUtils.get
 import com.dongyu.movies.utils.showToast
 import com.dongyu.movies.utils.toFileUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlin.math.truncate
 
 class AboutFragment : PreferenceFragmentCompat() {
 
@@ -36,6 +37,12 @@ class AboutFragment : PreferenceFragmentCompat() {
             view.setBackgroundColor(typedArray.getColor(0, Color.WHITE))
 
             typedArray.recycle()
+        }
+
+        findPreference<Preference>("dev_author")?.setOnPreferenceClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.DEV_HOME_URL))
+            startActivity(intent)
+            true
         }
 
         findPreference<Preference>("statement")?.setOnPreferenceClickListener {

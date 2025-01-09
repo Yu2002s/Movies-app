@@ -4,13 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.util.Log
 import android.view.WindowManager
-import com.bytedance.pangle.transform.ZeusTransformUtils.getResources
 import com.dongyu.movies.MoviesApplication
-import com.dongyu.movies.base.BaseActivity
-import com.dongyu.movies.config.SPConfig
-import com.dongyu.movies.utils.SpUtils.get
 
 /**
  * dp转像素
